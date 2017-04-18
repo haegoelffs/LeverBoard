@@ -34,7 +34,7 @@ char readInterfaceSensorsVoltage();
 // gpios
 void initGPIOs();
 void setLEDsBatteryPower(char batteryPower);
-
+void setPiezoSound(char state);                 //(state == 1) ==> piezo on,  (state == 0) ==> piezo off
 // log
 void initUART();
 void logMsg(char *msg);

@@ -2,11 +2,16 @@
 #define INTERFACE_H_INCLUDED
 
 void initInterface();
-signed char getBoardPosition();
+
 
 void setNoBreakAlert();
 void quitNoBtreakAlert();
 
-void setEnergyLEDs(char energy);
+void setBatteryAlert(char energy);
+void quitBatteryAlert();
+
+void setEnergyLEDs(char energy);     
+
+signed char readHallSensor(int num);
 
 #endif // INTERFACE_H_INCLUDED
