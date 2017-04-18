@@ -24,9 +24,9 @@ void initAnalog();
 void registerVoltageZeroCrossingListener(function callback);
 void setVoltageZeroCrossingPhase(char phase);
 
-void startIntegration()
+void startIntegration(char limit, function callback);
 
-char readBatteryVoltage(char limit, function callback);
+char readBatteryVoltage();
 char readPhaseCurrnet(char phase);
 char readPhaseVoltage(char voltage);
 char readInterfaceSensorsVoltage();

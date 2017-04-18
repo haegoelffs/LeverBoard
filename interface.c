@@ -25,7 +25,15 @@ void quitBatteryAlert()
 		setPiezoSound(0);
 	};
 	
-void setEnergyLEDs(unsigned char energy);				//energy is the Battery voltage, it is a value from 1 to 4 (1 is very low, 4 is very good)
+/*
+last change: 18.4.2017
+version: 0.1
+*/
+
+#include system.h
+#include <avr/io.h>
+
+void setEnergyLEDs(unsigned char energy);				//energy is the Battery voltage, it is a value from 0 to 4 (0 is very low, 4 is very good)
 	{
 		setLEDsBatteryPower(energy);
 	};
