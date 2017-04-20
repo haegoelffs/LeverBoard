@@ -15,49 +15,59 @@ int main(void)
     initGPIOs();
     initAnalog();
     initPWM();
-
+	
+	//init variables
+	char numPiezo = 0;       //number of times piezo made a noise
+	char numLed = 0;		//number of times LEDs were flashed
+	
     // init modules
-    initEnergy();
-    initInterface();
-    initDrive();
-
-    // variables
-    char BatteryState batteryState = BatteryState.ok;
+    //initEnergy();
+    //initInterface();
+    //initDrive();
+	
 
     while(1)
     {
-        // check break state
-        batteryState = getBatteryState();
-        if(batteryState==BatteryState.no_break)
-        {
-            setNoBreakAlert();
-        }
-        else
-        {
-            quitNoBtreakAlert();
-        }
-
-        // handle battery charge
-        setEnergyLEDs(getBatteryCharge());
-
-        // handle acceleration / deceleration
-        signed char boardPosition = getBoardPosition();
-
-        if(boardPosition<0)
-        {
-            // break
-            if(batteryState!=BatteryState.no_break)
-            {
-                setRotationsPerSec(0);
-                setBreakCoefficient((char)(boardPosition*(-1)));
-            }
-        }
-        else
-        {
-            setRotationsPerSec();
-        }
-
-    }
-
-    return 0;
+		//Handle BatteryState
+		char BatteryState = getBatteryState();
+		switch(BatteryState) {
+			case 0: switchPwmOnOff(0);
+					if(numLed < 1) flashLEDs(1);
+					numLed = 1;
+					numPiezo = 0;
+					setLEDsBatteryPower(0);
+					break;
+			case 1: switchPwmOnOff(1);
+					if (numPiezo< 1)
+					{
+						setBatteryAlert();
+						++numPiezo;		
+					}
+					else quitBatteryAlert();
+					numLed = 0;
+					setLEDsBatteryPower(0);
+					
+					break;
+			case 2: switchPwmOnOff(1);
+					numLed = 0;
+					numPiezo = 0;
+					setLEDsBatteryPower(2);
+					break;
+			case 3: switchPwmOnOff(1);
+					numLed = 0;
+					numPiezo = 0;
+					setLEDsBatteryPower(3);
+					break;
+			case 4: switchPwmOnOff(1);
+					numLed = 0;
+					setLEDsBatteryPower(4);
+					if (numPiezo < 1)
+					{
+						setNoBreakAlert();
+					}
+					else quitNoBtreakAlert();
+		}
+		
+    
+	}
 }

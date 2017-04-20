@@ -10,7 +10,7 @@ version: 0.1
 
 void initEnergy()
 {
-
+return;
 };
 
 char getBatteryState()

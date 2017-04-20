@@ -35,6 +35,8 @@ char readInterfaceSensorsVoltage();
 void initGPIOs();
 void setLEDsBatteryPower(char batteryPower);
 void setPiezoSound(char state);                 //(state == 1) ==> piezo on,  (state == 0) ==> piezo off
+void switchPwmOnOff(char state);             //Turn PWM on (state == 1) and Turn PWM off(state == 0)
+
 // log
 void initUART();
 void logMsg(char *msg);
