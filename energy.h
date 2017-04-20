@@ -1,10 +1,13 @@
+
+/*
+last change: 18.4.2017
+version: 0.1
+*/
+
 #ifndef ENERGY_H_INCLUDED
 #define ENERGY_H_INCLUDED
 
-enum BatteryState {ok, no_break, low_energy}
-
 void initEnergy();
-char getBatteryCharge();
-enum BatteryState getBatteryState();
-
+char getBatteryState();  /returns a char from from 0 to 4 (1 is very low voltage (0 turns off, 1 piezo, 4 no charging)
+{
 #endif // ENERGY_H_INCLUDED

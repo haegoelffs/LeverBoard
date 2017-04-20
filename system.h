@@ -24,9 +24,9 @@ void initAnalog();
 void registerVoltageZeroCrossingListener(function callback);
 void setVoltageZeroCrossingPhase(char phase);
 
-void startIntegration(char limit, function callback)
-
 // value * 10⁻1 -> 232 = 23,2 V
+void startIntegration(char limit, function callback);
+
 char readBatteryVoltage();
 char readPhaseCurrnet(char phase);
 char readPhaseVoltage(char voltage);
@@ -39,6 +39,7 @@ char readInterfaceSensorsVoltage(char sensor);
 void initGPIOs();
 void setLEDsBatteryPower(char batteryPower);
 void enableBridgeDriver(char enable);
+void setPiezoSound(char state);                 //(state == 1) ==> piezo on,  (state == 0) ==> piezo off
 
 // log
 void initUART();
