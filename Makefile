@@ -1,7 +1,8 @@
 # Makefile fuer AVR Assembler sources
 # (c) Matthias Meier, 24.2.2016
 
-PROJECT=$(shell basename $(shell pwd))
+# PROJECT = $(shell basename $(shell pwd))
+PROJECT = gpio_snippet
 
 OBJS = $(PROJECT).o
 
@@ -31,8 +32,9 @@ $(PROJECT).elf: $(OBJS)
 
 
 
-flash: $(PROJECT).hex  $(ADUDE_IF)
-	avrdude -F -c $(ADUDE_PROT) -p $(MCU) -P $(ADUDE_IF) -b $(ADUDE_BAUD) -U flash:w:$(PROJECT).hex:i
+flash: $(PROJECT).hex
+	avrdude -p $(MCU) -c dragon_isp -P usb -e -U flash:w:$(PROJECT).hex:i
+#	avrdude -F -c $(ADUDE_PROT) -p $(MCU) -P $(ADUDE_IF) -b $(ADUDE_BAUD) -U flash:w:$(PROJECT).hex:i
 
 
 clean:

@@ -24,16 +24,21 @@ void initAnalog();
 void registerVoltageZeroCrossingListener(function callback);
 void setVoltageZeroCrossingPhase(char phase);
 
-void startIntegration()
+void startIntegration(char limit, function callback)
 
-char readBatteryVoltage(char limit, function callback);
+// value * 10⁻1 -> 232 = 23,2 V
+char readBatteryVoltage();
 char readPhaseCurrnet(char phase);
 char readPhaseVoltage(char voltage);
-char readInterfaceSensorsVoltage();
+
+// sensor 0 = Front
+// sensor 1 = Back
+char readInterfaceSensorsVoltage(char sensor);
 
 // gpios
 void initGPIOs();
 void setLEDsBatteryPower(char batteryPower);
+void enableBridgeDriver(char enable);
 
 // log
 void initUART();
