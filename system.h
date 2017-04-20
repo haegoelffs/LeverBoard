@@ -40,6 +40,10 @@ void initGPIOs();
 void setLEDsBatteryPower(char batteryPower);    // batteryPower = 0 --> all leds off, = 1 --> led1 on, = 2 --> led2 on ...
 void enableBridgeDriver(char enable);
 void setPiezoSound(char state);                 //(state == 1) ==> piezo on,  (state == 0) ==> piezo off
+<<<<<<< HEAD
+void switchPwmOnOff(char state);             //Turn PWM on (state == 1) and Turn PWM off(state == 0)
+=======
+>>>>>>> origin/master
 
 // log
 void initUART();
