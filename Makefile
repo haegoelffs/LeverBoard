@@ -2,9 +2,9 @@
 # (c) Matthias Meier, 24.2.2016
 
 # PROJECT = $(shell basename $(shell pwd))
-PROJECT = gpio_snippet
+PROJECT = system_tester_snippet
 
-OBJS = $(PROJECT).o
+OBJS = $(PROJECT).o system.o ringbuffer.o logger.o
 
 CC = avr-gcc
 
