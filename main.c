@@ -19,6 +19,7 @@ int main(void)
 	//init variables
 	char numPiezo = 0;       //number of times piezo made a noise
 	char numLed = 0;		//number of times LEDs were flashed
+	signed char new_current;
 	
     // init modules
     //initEnergy();
@@ -68,6 +69,8 @@ int main(void)
 					else quitNoBtreakAlert();
 		}
 		
-    
+		//get wished current
+		signed char new_current = give_newcurrent(void);
+		
 	}
 }
