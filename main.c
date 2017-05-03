@@ -45,7 +45,7 @@ int main(void)
 					}
 					else quitBatteryAlert();
 					numLed = 0;
-					setLEDsBatteryPower(0);
+					setLEDsBatteryPower(1);
 					
 					break;
 			case 2: switchPwmOnOff(1);
