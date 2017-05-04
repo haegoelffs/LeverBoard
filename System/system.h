@@ -31,9 +31,13 @@ void initTimers();
 **/
 void startAfterMs1(uint16_t ms, void (*fn)(void));
 
-void startTimeMeasurement(void (*timerOverflowCallback)(void));
-uint16_t getTime();
-uint16_t stopTimeMeasurement();
+void startTimeMeasurement1(void (*timerOverflowCallback)(void));
+uint16_t getTime1();
+uint16_t stopTimeMeasurement1();
+
+void startTimeMeasurement2(void (*timerOverflowCallback)(void));
+uint16_t getTime2();
+uint16_t stopTimeMeasurement2();
 
 // analog values
 void initAnalog();
