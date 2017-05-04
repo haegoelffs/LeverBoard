@@ -17,6 +17,6 @@ void quitBatteryAlert();
 
 void setEnergyLEDs(char energy);     
 void flashLEDs(unsigned char tmp, char ms);
-signed char readHallSensor(int num);
+signed char give_newcurrent(void);
 
 #endif // INTERFACE_H_INCLUDED
