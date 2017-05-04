@@ -1,5 +1,5 @@
 /*
-last change: 20.4.2017
+last change: 04.5.2017
 version: 1.2
 */
 

@@ -1,5 +1,8 @@
+
 /*
- */
+last change: 04.5.2017
+version: 0.1
+*/
 #include <avr/io.h>
 #include <stdint.h>
 
@@ -21,6 +24,7 @@ int main(void)
 	char numLed = 0;		//number of times LEDs were flashed
 	signed char new_current;
 	char phaseState = 7;   // 7 is for Initialization 0 to 5 for use
+	char duty_cycle;
 	
     // init modules
     //initEnergy();
@@ -73,6 +77,8 @@ int main(void)
 		//get wished current + set wisched current
 		signed char new_current = give_newcurrent(void);
 		char actual_current = give_actualcurrent(phase_state);
-
+		//set duty_cycle to reach wisched current;
+		rise_sink_pwm_dutyc(new_current,actual_current,duty_cycle);
+		
 	}
 }
