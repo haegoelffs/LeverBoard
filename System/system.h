@@ -1,46 +1,78 @@
-/*
-last change: 18.4.2017
-version: 0.1
-*/
-
 #ifndef SYSTEM_H_INCLUDED
 #define SYSTEM_H_INCLUDED
 
 #include <stdint.h>
 
 // pwm
-enum phaseState {on, off};
-
 void initPWM();
+
+/** Sets the dutycycle of the pwm.
+    Input:
+    0 <= dutyCycle <= 100 every handed value > 100 will be interpreted as 100
+ **/
 void setPWMDutyCycle(char dutyCycle);
-void changePhaseState(char phase, enum phaseState state);
+
+/** Changes the output channels for the pwm.
+    Input:
+    state = 0: A heavyside, C lowside
+    state = 1: B heavyside, C lowside
+    state = 2: B heavyside, A lowside
+    state = 3: C heavyside, A lowside
+    state = 4: C heavyside, B lowside
+    state = 5: A heavyside, B lowside
+    state > 5: Will be ignored
+**/
+void changePhaseState(char state);
 
 // timers
-void startAfterMs(uint16_t ms, void (*fn)(void));
+void initTimers();
+
+/** Calls the handed function after the handed time
+**/
+void startAfterMs1(uint16_t ms, void (*fn)(void));
+
+void startTimeMeasurement(void (*timerOverflowCallback)(void));
+uint16_t getTime();
+uint16_t stopTimeMeasurement();
 
 // analog values
 void initAnalog();
-
-//void registerVoltageZeroCrossingListener(function callback);
-void setVoltageZeroCrossingPhase(char phase);
-
-// value * 10⁻1 -> 232 = 23,2 V
-//void startIntegration(char limit, function callback);
-
 char readBatteryVoltage();
 char readPhaseCurrnet(char phase);
-char readPhaseVoltage(char voltage);
 
 // sensor 0 = Front
 // sensor 1 = Back
 char readInterfaceSensorsVoltage(char sensor);
 
+
+// comperators
+void initComp();
+
+/** Register the handed function as listener which is called when the voltage of the phase A crosses the zero
+    Input:
+    listener = function with parameter edge.
+        --> edge = 0: falling edge
+        --> edge = 1: rising edge
+**/
+void registerVoltageZeroCrossingListenerPhaseA(void (*listener)(char edge));
+void registerVoltageZeroCrossingListenerPhaseB(void (*listener)(char edge));
+void registerVoltageZeroCrossingListenerPhaseC(void (*listener)(char edge));
+
+/** Enables the comperator for the phase A.
+    Input:
+    enable = 1: enable comperator
+    enable = 0: disable comperator
+**/
+void setEnableCompA(char enable);
+void setEnableCompB(char enable);
+void setEnableCompC(char enable);
+
 // gpios
 void initGPIOs();
 void setLEDsBatteryPower(char batteryPower);    // batteryPower = 0 --> all leds off, = 1 --> led1 on, = 2 --> led2 on ...
-void enableBridgeDriver(char enable);
 void setPiezoSound(char state);                 //(state == 1) ==> piezo on,  (state == 0) ==> piezo off
 void switchPwmOnOff(char state);             //Turn PWM on (state == 1) and Turn PWM off(state == 0)
+
 
 // log
 void initUART();
