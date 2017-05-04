@@ -13,7 +13,7 @@ enum phaseState {on, off};
 
 void initPWM();
 void setPWMDutyCycle(char dutyCycle);
-void changePhaseState(char phase, enum phaseState state);
+void changePhaseState(char phase_state);
 
 // timers
 void startAfterMs(uint16_t ms, void (*fn)(void));

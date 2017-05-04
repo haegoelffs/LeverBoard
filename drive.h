@@ -3,11 +3,9 @@
 
 #include <stdint.h>
 
-void initDrive();
+//void initDrive();
+char give_actualcurrent(char phase_state);
 
-void setRotationsPerSec(uint16_t rotations);
-uint16_t getActualRotationsPerSec();
 
-void setBreakCoefficient(char coefficient);
 
 #endif // DRIVE_H_INCLUDED

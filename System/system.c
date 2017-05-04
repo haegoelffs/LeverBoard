@@ -59,7 +59,7 @@ ISR (TIMER0_COMPA_vect)
 }
 
 
-void changePhaseState(char phase, enum phaseState state)
+void changePhaseState(char phase_state)
 {
 
 }
