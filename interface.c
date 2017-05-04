@@ -4,7 +4,8 @@ version: 1.2
 */
 
 
-#include system.h
+#include "system.h"
+#include "interface.h"
 #include <avr/io.h>
 
 void initInterface()

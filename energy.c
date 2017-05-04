@@ -5,7 +5,8 @@ version: 0.1
 */
 
 
-#include system.h
+#include "system.h"
+#include "energy.h"
 #include <avr/io.h>
 
 void initEnergy()
