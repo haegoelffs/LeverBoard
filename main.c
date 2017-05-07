@@ -80,5 +80,7 @@ int main(void)
 		//set duty_cycle to reach wisched current;
 		rise_sink_pwm_dutyc(new_current,actual_current,duty_cycle);
 		
+		
+		
 	}
 }

@@ -16,35 +16,34 @@ void initInterface()
 void setNoBreakAlert()
 	{
 		setPiezoSound(1);
-		//Start Timer_user 
+		startTimeMeasurement2();
 	};
 	
 void quitNoBtreakAlert()
 	{
-		/*If Timer Timer_user1 >= 1 sek
+		uint16_t ms = getTime2();
+		if (ms > 2000)
 		{
-			//setPiezoSound(0);
-			//stop Timer_user1 + reset Timer_user1;
+			uint16_t stopTimeMeasurement2();
+			setPiezoSound(0);
 		}
-		*/
 	};
 
 void setBatteryAlert()									//energy is the Battery voltage, it is a value from 1 to 4 (1 is very low, 4 is very good)
 	{
 		
 		setPiezoSound(1);
-		//Start Timer_user1
-		
+		startTimeMeasurement2();
 	};
 	
 void quitBatteryAlert()
 	{
-		/*If Timer Timer_user1 >= 1 sek
+		uint16_t ms = getTime2();
+		if (ms > 1000) 
 		{
-			//setPiezoSound(0);
-			//stoptimer + reset Timer;
+			uint16_t stopTimeMeasurement2();
+			setPiezoSound(0);
 		}
-		*/  
 	};
 	
 
