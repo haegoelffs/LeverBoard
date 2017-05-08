@@ -1,8 +1,7 @@
 /*
-last change: 07.5.2017
+last change: 08.5.2017
 version: 0.1
 */
-
 #include "drive.h"
 #include "system.h"
 #include "global.h"
@@ -99,4 +98,5 @@ void rise_sink_pwm_dutyc(char new_current,char actual_current, char duty_cycle)
 		setPWMDutyCycle(duty_cycle);
 	}
 	else duty_cycle= 0;
+	setPWMDutyCycle(duty_cycle)
 }

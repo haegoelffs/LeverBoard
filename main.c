@@ -1,6 +1,6 @@
 
 /*
-last change: 04.5.2017
+last change: 08.5.2017
 version: 0.1
 */
 #include <avr/io.h>
@@ -25,7 +25,7 @@ int main(void)
 	char numPiezo = 0;       //number of times piezo made a noise
 	char numLed = 0;		//number of times LEDs were flashed
 	signed char new_current;
-	char duty_cycle;
+	char duty_cycle = 0;
 	phaseState = 7;
 	delta_time = 100;
 	

@@ -1,3 +1,8 @@
+  /*
+  last change: 08.5.2017
+  version: 0.1
+  */
+  
   #ifdef GLOB
   #define EXTERN1
   #else

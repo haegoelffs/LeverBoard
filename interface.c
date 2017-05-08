@@ -1,8 +1,7 @@
 /*
-last change: 04.5.2017
-version: 1.2
+last change: 08.5.2017
+version: 0.1
 */
-
 
 #include "system.h"
 #include "interface.h"
@@ -66,10 +65,18 @@ void flashLEDs(char sec)
 signed char give_newcurrent(void);			//gets hallvoltage returns wished power (MAX POWER 42.5 A)
 	{
 		char front = readInterfaceSensorsVoltage(0);	//Hallsensor front
-		//char tail = readInterfaceSensorsVoltage(1);		//Hallsensor tail									
-		if(front < (char)10)							//correction factor for hall sensors (ANPASSEN!!!)	
+		char tail = readInterfaceSensorsVoltage(1);	   //Hallsensor tail
+		char delta_sensors;	
+		if(front > tail) 
 		{
-			char front = 0;
-		}									
-		return (signed char) (front * (char) 40) / (char) 255;     //Return wished current(40 set as Maximum)
+			delta_sensors = front - tail;
+		}
+		else delta_sensors = tail - front;
+		if((delta_sensors < 51))
+		{
+			return (signed char)0;
+		}
+		else if (delta_sensors > 255) return (signed char 42);
+		else return (signed char)((42 * delta_sensors)/255);			
+		
 	};
