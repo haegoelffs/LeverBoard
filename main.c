@@ -10,7 +10,7 @@ version: 0.1
 #include "system.h"
 #include "interface.h"
 #include "energy.h"
-#include "global.h"
+#include "global.h"     //Global variables
 
 int main(void)
 {
