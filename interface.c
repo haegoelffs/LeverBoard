@@ -8,11 +8,12 @@ version: 1.2
 #include "interface.h"
 #include <avr/io.h>
 
+/*
 void initInterface()
 		{
 			return;
 		};
-
+*/
 void setNoBreakAlert()
 	{
 		setPiezoSound(1);

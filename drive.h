@@ -8,8 +8,14 @@ version: 0.1
 
 #include <stdint.h>
 
-//void initDrive();
-char give_actualcurrent(char phase_state);
+
+
+void initDrive();
+void set_phase_state1();
+void set_phase_state2();
+void set_phase_state3();
+void set_phase_state4();
+char give_actualcurrent();
 
 void rise_sink_pwm_dutyc(char new_current,char actual_current, char duty_cycle);
 

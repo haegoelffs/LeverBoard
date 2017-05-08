@@ -10,6 +10,7 @@ version: 0.1
 #include "system.h"
 #include "interface.h"
 #include "energy.h"
+#include "global.h"
 
 int main(void)
 {
@@ -18,18 +19,21 @@ int main(void)
     initGPIOs();
     initAnalog();
     initPWM();
+	uint16_t delta_time;
 	
 	//init variables
 	char numPiezo = 0;       //number of times piezo made a noise
 	char numLed = 0;		//number of times LEDs were flashed
 	signed char new_current;
-	char phaseState = 7;   // 7 is for Initialization 0 to 5 for use
 	char duty_cycle;
+	phaseState = 7;
+	delta_time = 100;
+	
 	
     // init modules
     //initEnergy();
     //initInterface();
-    //initDrive();
+    initDrive();
 	
 
     while(1)
