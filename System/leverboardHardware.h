@@ -1,7 +1,10 @@
 #ifndef LEVERBOARDHARDWARE_H_INCLUDED
 #define LEVERBOARDHARDWARE_H_INCLUDED
 
-// __GPIOs______________________________________________________
+// __GPIOs
+#define TRISTATE_INPUT 0
+#define TRISTATE_OUTPUT 1
+
 #define PORT_LEDS PORTA
 #define TRISTATE_LEDS DDRA
 #define PIN_LED0 0
@@ -17,8 +20,26 @@
 #define TRISTATE_ENABLE_DRIVER DDRA
 #define PIN_ENABLE_DRIVER 5
 
-#define PORT
+#define PORT_PWM1 PORTB
+#define PORT_PWM2 PORTB
+#define PORT_PWM3 PORTB
+#define PORT_PWM4 PORTB
+#define PORT_PWM5 PORTH
+#define PORT_PWM6 PORTH
 
+#define TRISTATE_PWM1 DDRB
+#define TRISTATE_PWM2 DDRB
+#define TRISTATE_PWM3 DDRB
+#define TRISTATE_PWM4 DDRB
+#define TRISTATE_PWM5 DDRH
+#define TRISTATE_PWM6 DDRH
+
+#define PIN_PWM1 7
+#define PIN_PWM2 6
+#define PIN_PWM3 5
+#define PIN_PWM4 4
+#define PIN_PWM1 6
+#define PIN_PWM1 5
 // __PWM________________________________________________________
 
 // CALCULATIONS:
@@ -150,132 +171,214 @@
 #define SET_HIGH_FLAG OCF0B
 #define SET_LOW_FLAG OCF0A
 
-// __USART________________________________________________________
 
-// REGISTERS:
 
-// UDRn – USART I/O Data Register n p.218
-// Wenn gelesen: Empfangene Daten von Receive Data Buffer Register (RXB)
-// Wenn beschrieben: Daten auf Data Buffer Register (TXB) schreiben
-//      -> nur beschreibbar wenn UDREn Flag in UCSRAnA Register gesetzt (sonst ignoriert)
-#define UART_SEND_DATA UDR0
 
-// UCSRnA – USART Control and Status Register A p.219
+// __ANALOG COMPERATOR________________________________________________________
+// Vergleicht Input an positivem (AIN0) und negativem (AIN1) Pin und setzt Output ACO
+// Voraussetzungen:
+// - Analog Comparator Multiplexer Enable bit (ACME in ADCSRB) gesetzt
+// - ADC ausgeschaltet (ADEN in ADC-SRA = 0) --> Multiplexer von ADC wird verwendet um umzuschalten auf unterschiedliche Pins
+// - Mittels MUX5 & MUX2:0 in ADMUX wird pin für negativen Eingang AIN1 gewähl (Tabelle 25-1 p.265)
+
+// Registers:
+// ADCSRB – ADC Control and Status Register B p.266
 //  |7      |6      |5      |4      |3      |2      |1      |0      |
-//  |RXCn   |TXCn   |UDREn  |FEn    |DORn   |UPEn   |U2Xn   |MPCMn  |
-#define UART_REGISTER_A UCSR0A
+//  |ACD    |ACBG   |ACO    |ACI    |ACIE   |ACIC   |ACIS1  |ACIS0  |
+#define COMPERATOR_STATUS_REGISTER ADCSRB
 
-// RXCn: USART Receive Complete
-// -> gesetzt wenn ungelesene Daten in receive register
+// ACD: Analog Comparator Disable
+// Wenn auf logisch 1 gesetzt --> Comperator ausgeschaltet
+// Kann jederzeit geschaltet werden (Energie sparen etc.)
+// Wenn bit veräbdert wird, kann möglicherweise Interrupt von AC ausgelöst werden --> ausschalten
 
-// TXCn: USART Transmit Complete
-// -> gesetzt wenn alle Daten gesendet & keine neuen daten in UDRn verfügbar
+// ACBG: Analog Comparator Bandgap Select
+// Wenn = 1, wird die interne Referenzsspannung als positiven Eingang benutzt
+// Wenn = 0, wird AIN0 als positiven Eingang benutzt
 
-// UDREn: USART Data Register Empty
-// -> gesetzt wenn UDRn leer ist
-#define UART_DATA_REG_EMPTY_BIT UDRE0
+// ACO: Analog Comparator Output
+// AIN0 > AIN1 --> ACO = 1
+// AIN0 < AIN1 --> ACO = 0
+// Verzögerung von 1 - 2 Clockzyklen (Synchronisation)
 
-// FEn: Frame Error
-// -> gesetzt wenn nächstes zeichen in receive buffer ein frame error aufweist
+// ACI: Analog Comparator Interrupt Flag
+// Gesetzt von der Hardware wenn vom AC ein Interrupt ausgelöst wird.
 
-// DORn: Data OverRun
-// -> gesett wenn empfangbuffer voll ist (zwei Zeichen)
+// ACIE: Analog Comparator Interrupt Enable
+// Wenn = 1, sind AC Interrupts anktiviert
+// Wenn = 0, sind AC Interrupts deaktiviert
 
-// UPEn: USART Parity Error
-// -> gesetzt wenn zeichen in eingansbuffer ein parity fehler aufweist
+// ACIC: Analog Comparator Input Capture Enable
+// Wenn = 1, wird der Ausgang des AC mit dem Timer/Counter1 trigger verbunden
+// Wenn = 0, keine Verbindung zu Timer/Counter1 trigger
 
-// U2Xn: Double the USART Transmission Speed
-// -> wenn gesetzt, wird divisor von baudrate von 16 auf 8 reduziert --> verdoppelt speed
-// -> hat einfluss auf asynchrone übertragung (sonst auf 0 setzen!).
+// ACIS1, ACIS0: Analog Comparator Interrupt Mode Select
+// Festlegen des Interrupts für Comperator
+// Table 25-2 p.267
+// ACIS1 = 0, ACIS0 = 0 --> Interrupt bei Output Toggle (sinkende und steigende Flanke)
+#define COMPERATOR_STATUS_REGISTER_VALUE ((0<<ACD) | (0<<ACBG) | (1<<ACIE) | (0<<ACIC) | (0<<ACIS1) | (0<<ACIS0))
 
-// MPCMn: Multi-processor Communication Mode
-// -> Auf 0 setzen
-#define UART_REGISTER_A_VALUE ((0<<U2X0) | (0<<MPCM0))
 
-// UCSRnB – USART Control and Status Register n B
+// DIDR1 – Digital Input Disable Register 1 p.267
 //  |7      |6      |5      |4      |3      |2      |1      |0      |
-//  |RXCIEn |TXCIEn |UDRIEn |RXENn  |TXENn  |UCSZn2 |RXB8n  |TXB8n  |
-#define UART_REGISTER_B UCSR0B
+//  |-      |-      |-      |-      |-      |-      |AIN1D  |AIN0D  |
+#define COMPERATOR_DIGITAL_INPUT_CONTROLL_REGISTER DIDR1
 
-// RXCIEn: RX Complete Interrupt Enable n
-// -> interrupt wenn RXCn gesetzt
+// AIN1D, AIN0D: AIN1, AIN0 Digital Input Disable
+// Wenn = 1, wird der digitale Inputbuffer für die Pins AIN1/0 deaktiviert
+// (wird digital immer eine 0 gelsenen --> Energie sparren wenn analog verwendet wird)
+// Wenn = 0, digitaler Inputbuffer aktiviert
+#define COMPERATOR_DIGITAL_INPUT_CONTROLL_REGISTER_VALUE ((1<<AIN1D) | (1<<AIN0D))
 
-// TXCIEn: TX Complete Interrupt Enable n
-// -> interrupt wenn TXCn gesetzt
+// __ANALOG DIGITAL CONVERTER________________________________________________________
+// Calculations:
 
-// UDRIEn: USART Data Register Empty Interrupt Enable n
 
-// RXENn: Receiver Enable n
-// -> wenn gesetzt wird USART Empfänger aktiviert
 
-// TXENn: Transmitter Enable n
-// -> wenn gesetzt wird USART Sender aktiviert
+// Registers:
 
-// UCSZn2: Character Size n
-// -> mit UCSZn1:0 aus UCSRnC. Legt anzahl von datenbits in einem Frame fest
-
-// RXB8n: Receive Data Bit 8 n
-// TXB8n: Transmit Data Bit 8 n
-// -> neuntes Datenbyt wenn mit 9 Bit gearbeitet wird
-#define UART_REGISTER_B_VALUE ((0<<RXCIE0) | (0<<TXCIE0) | (0<<UDRIE0) | (0<<RXEN0) | (1<<TXEN0) | (1<<UCSZ02))
-
-// UCSRnC – USART Control and Status Register n C p.221
+// ADMUX – ADC Multiplexer Selection Register p.281
 //  |7      |6      |5      |4      |3      |2      |1      |0      |
-//  |UMSELn1|UMSELn0|UPMn1  |UPMn0  |USBSn  |UCSZn1 |UCSZn0 |UCPOLn |
-#define UART_REGISTER_C UCSR0C
+//  |REFS1  |REFS0  |ADLAR  |MUX4   |MUX3   |MUX2   |MUX1   |MUX0   |
 
-// UMSELn1:0 USART Mode Select
-// -> Modus des USART:
-// 0 0 async <-- keine gemeinsahme taktleitung!
-// 0 1 sync
-// 1 1 master SPI
+// REFS1:0: Reference Selection Bits
+// Auswahl der Referenzspannung.
+// Achtung: Die Interne referenz wird möglicherweise nicht benutzt, falls eine Referenzspannung an Pin AREF anliegt.
+// Table 26-3 p.281
+// REFS1 = 0, REFS0 = 0 --> Refernzspannung an Pin AREF
+// REFS1 = 0, REFS0 = 1 --> Refernzspannung = AVCC (Power für ADC), Kondensator an Pin AREF (stabilisierung)
+// Änderungen werden erst nach laufender Conversation aktiv!
 
-// UPMn1:0: Parity Mode
-// -> Festlegen des parity modus:
-// 0 0 disabled <-- da nur zu debug-zwecken
-// 1 0 enabled even
-// 1 1 enabled odd
+// ADLAR: ADC Left Adjust Result
+// Wenn = 1, Resultat in ADC Data Register ist links ausgerichtet
+// Wenn = 0, Resultat in ADC Data Register ist rechts ausgerichtet
 
-// USBSn: Stop Bit Select
-// -> anzahl stop bits die sender einfügt
-// 0 1-bit <-- normal
-// 1 2-bit
+// MUX4:0: Analog Channel and Gain Selection Bits
+// Auswahl der analogen Eingänge, die mit dem ADC verbunden sind
+// Für die Werte siehe Table 26-4 p.282
 
-// UCSZn1:0: Character Size
-// -> anzahl datenbits (mit UCSZn2 aus UCSRnB)
-// 0 1 0 7-bit
-// 0 1 1 8-bit <-- default picocom
-// 1 1 1 9-bit
 
-// UCPOLn: Clock Polarity
-// -> nur für sync mode. Beziehung zwischen daten ausgangs änderung, daten input sample und sync clock
-#define UART_REGISTER_C_VALUE ((0<<UMSEL01) | (0<<UMSEL00) | (0<<UPM01) | (0<<UPM00) | (0<<USBS0) | (1<<UCSZ01) | (1<<UCSZ00))
-
-// UBRRnL and UBRRnH – USART Baud Rate Registers
+// ADCSRB – ADC Control and Status Register B p.282
 //  |7      |6      |5      |4      |3      |2      |1      |0      |
-//  |-      |-      |-      |-      |UBRR11 |UBRR10 |UBRR9  |UBRR8  | --> UBRRHn
-//  |UBRR7  |UBRR6  |UBRR5  |UBRR4  |UBRR3  |UBRR2  |UBRR1  |UBRR0  | --> UBRRLn
-#define UART_BAUD_RATE_HIGH_BYTE UBRR0H
-#define UART_BAUD_RATE_LOW_BYTE UBRR0L
+//  |-      |ACME   |-      |-      |MUX5   |ADTS2  |ADTS1  |ADTS0  |
 
-// Bit 15:12 -> reserviert, müssen mit 0 beschrieben werden
+// MUX5: Analog Channel and Gain Selection Bit
+// 6. Bit ergänzend zu MUX4:0 in ADMUX
 
-// Bit 11:0 – UBRR11:0: USART Baud Rate Register
-// -> 12bit register für Baud rate
-// fehler muss unter 0.5% liegen
-//      |U2Xn = 0       |U2Xn = 1       |
-// Baud |UBRR   |Error  |UBRR   |Error  |
-// 9600 |103    |0.2%   |207    |0.2%   |
-// Table 22-12 p.226
+// ADTS2:0: ADC Auto Trigger Source
+// Quelle für Auto-Trigger wählen.
+// Wenn ADATE (in ADCSRA) = 0, haben Einstellungen keinen Effekt.
+// Free Running Mode wird hier eingestellt (Trigger = Interrupt von erfolgreicher ADC Wandlung)
 
-// 103 --> 0b0110 0111
-#define UART_BAUD_RATE_HIGH_BYTE_VALUE 0
-#define UART_BAUD_RATE_LOW_BYTE_VALUE 0b01100111
 
-// ttyACM3
-// Terminal starten:
-// sudo picocom --baud 9600  --parity n --databits 8 --flow n -l /dev/ttyACM3
-// (Quelle: https://developer.ridgerun.com/wiki/index.php/Setting_up_Picocom_-_Ubuntu)
+// ADCSRA – ADC Control and Status Register A
+//  |7      |6      |5      |4      |3      |2      |1      |0      |
+//  |ADEN   |ADSC   |ADATE  |ADIF   |ADIE   |ADPS2  |ADPS1  |ADPS0  |
 
+//ADEN: ADC Enable
+// Wenn = 1, der ADC wird aktiviert
+// Wenn = 0, der ADC wird deaktiviert, jedoch erst nach der laufenden konversion
+
+// ADSC: ADC Start Conversion
+// Single conversion mode:
+// Auf 1 setzen um konversation zu starten.
+// Bleibt so lange auf 1 bis Wandlung beendet (dann auf 0)
+// Free Running mode: Auf 1 setzen um erste Wandlung zu starten.
+
+// ADATE: ADC Auto Trigger Enable
+// Wenn = 1, wird das Auto Triggering des ADC erlaubt
+
+// ADIF: ADC Interrupt Flag
+// Gesetzt, wenn Wandlung fertig und Datenregister aktualisiert wurde. Kann Interrupt auslösen.
+// Wird von Hardware zurückgesetzt wenn Interrupt behandelt wird. Sonst manuel zurücksetzen.
+
+// ADIE: ADC Interrupt Enable
+// Interrupt für ADC erlauben
+
+// ADPS2:0: ADC Prescaler Select Bits
+// Table 26-5 p.285
+
+// ADCL and ADCH – The ADC Data Register
+// rechts ausgerichtet
+//  |7      |6      |5      |4      |3      |2      |1      |0      |
+//  |-      |-      |-      |-      |-      |-      |ADC9   |ADC8   | --> ADCH
+//  |ADC7   |ADC6   |ADC5   |ADC4   |ADC3   |ADC2   |ADC1   |ADC0   | --> ADCL
+
+// LINKS ausgerichtet
+//  |7      |6      |5      |4      |3      |2      |1      |0      |
+//  |ADC9   |ADC8   |ADC7   |ADC6   |ADC5   |ADC4   |ADC3   |ADC2   | --> ADCH
+//  |ADC1   |ADC0   |-      |-      |-      |-      |-      |-      | --> ADCL
+
+// Resultat der Wandlung. Falls Differentiel gemessen wurd in Zweierkomplement dargestellt.
+// Update der Daten erst nachdem ADCH gelesen wurde (zuwerst low lesen, dann high)
+
+// DIDR0 – Digital Input Disable Register 0
+//  |7      |6      |5      |4      |3      |2      |1      |0      |
+//  |ADC7D  |ADC6D  |ADC5D  |ADC4D  |ADC3D  |ADC2D  |ADC1D  |ADC0D  |
+
+// ADC7D:ADC0D: ADC7:0 Digital Input Disable
+// Wenn = 1, digitaler Buffer zu ADC Pin (ADC7:0) disabled
+
+
+// DIDR2 – Digital Input Disable Register 2
+//  |7      |6      |5      |4      |3      |2      |1      |0      |
+//  |ADC15D |ADC14D |ADC13D |ADC12D |ADC11D |ADC10D |ADC9D  |ADC8D  |
+
+// ADC15D:ADC8D: ADC15:8 Digital Input Disable
+// Wenn = 1, digitaler Buffer zu ADC Pin (ADC15:8) disabled
+
+// __SPI________________________________________________________
+
+// Registers:
+
+// SPCR – SPI Control Register
+//  |7      |6      |5      |4      |3      |2      |1      |0      |
+//  |SPIE   |SPE    |DORD   |MASTR  |CPOL   |CPHA   |SPR1   |SPR0   |
+
+// SPIE: SPI Interrupt Enable
+
+// SPE: SPI Enable
+
+// DORD: Data Order
+// Wenn = 1, LSB zuerst
+// Wenn = 0, MSB zuerst <--|
+
+// MSTR: Master/Slave Select
+// Wenn = 1, --> Mastermode <--|
+// Wenn = 0, --> Slavemode
+// Falls !SS als Eingang konfiguriert & = 0 während MSTR gesetzt ist, wird MSTR = 0
+
+// CPOL: Clock Polarity
+// Wenn = 1, SCK high wenn untätig
+// Wenn = 0, SCK low wenn untätig<--|
+
+// CPHA: Clock Phase
+// Wenn = 1, sampling findet bei hinterkante von clk statt
+// Wenn = 0, sampling findet bei vorderkante von clk statt<--|
+
+// SPR1, SPR0: SPI Clock Rate Select 1 and 0
+// Table 21-5 p.198
+
+
+// SPCR – SPI Control Register
+//  |7      |6      |5      |4      |3      |2      |1      |0      |
+//  |SPIF   |WCOL   |-      |-      |-      |-      |-      |SPI2X  |
+
+// SPIF: SPI Interrupt Flag
+// Gesetzt wenn:
+// - serieller Transfer beendet
+// - wenn Mastermode, !SS ein Eingang & aus 0 gezogen
+
+// WCOL: Write COLlision Flag
+// gesetzt, falls Datenregister SPDR beschrieben wird während Datentransfer
+// zurückgesetzt, wenn SPCR gelesen und Datebregister neu beschrieben wird
+
+// SPI2X: Double SPI Speed Bit
+// Wenn gesetzt, wird die SCK Frequenz verdoppelt
+
+
+// SPDR – SPI Data Register
+//  |7      |6      |5      |4      |3      |2      |1      |0      |
+//  |MSB    |       |       |       |       |       |       |LSB    |
 
 #endif // LEVERBOARDHARDWARE_H_INCLUDED

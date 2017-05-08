@@ -1,6 +1,8 @@
 // ___EXTERNAL COMPERATORS___
 
 #include "system.h"
+#include "logger.h"
+
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
@@ -39,6 +41,12 @@
    Wenn Interrupt erfolgt, wird entsprechendes Flag auf 1 gesetzt.
    Nach Interruptrountine durch HW zurückgesetzt.*/
 
+/** Interrupt vectors
+*/
+#define PHASE_A_ISR INT4_vect
+#define PHASE_B_ISR INT5_vect
+#define PHASE_C_ISR INT6_vect
+
 /** GPIOs
 */
 #define TRISTATE_INPUT 0
@@ -53,6 +61,8 @@ static void (*listenerPhaseC)(char edge);
 
 void initComp()
 {
+    logMsg("Init comperators...");
+
     TRISTATE_COMP |= ((TRISTATE_INPUT<<INT_COMP_A) |(TRISTATE_INPUT<<INT_COMP_B) |(TRISTATE_INPUT<<INT_COMP_C)); // config as inputs
 
     EXT_INTERRUPT_4TO7_CONTROLL_REGISTER |= (1<<0);
@@ -63,6 +73,8 @@ void initComp()
 
     EXT_INTERRUPT_4TO7_CONTROLL_REGISTER |= (1<<4);
     EXT_INTERRUPT_4TO7_CONTROLL_REGISTER &= ~(1<<(4+1));
+
+    ENABLE_EXTERN_INTERRUPTS_REGISTER |= (1<<INT_COMP_A);
 }
 
 void setEnableCompA(char enable)
@@ -103,33 +115,49 @@ void setEnableCompC(char enable)
 
 void registerVoltageZeroCrossingListenerPhaseA(void (*listener)(char edge))
 {
+    logMsg("Register zero crossing listener phase A");
     listenerPhaseA = listener;
 }
 
 void registerVoltageZeroCrossingListenerPhaseB(void (*listener)(char edge))
 {
+    logMsg("Register zero crossing listener phase B");
     listenerPhaseB = listener;
 }
 
 void registerVoltageZeroCrossingListenerPhaseC(void (*listener)(char edge))
 {
+    logMsg("Register zero crossing listener phase C");
     listenerPhaseC = listener;
 }
 
-ISR (INT4_vect)
+ISR (PHASE_A_ISR)
 {
-    // phase A
-    listenerPhaseA((PORT_COMP >> INT_COMP_A) & 1);
+    setEnableCompA(0); // disable isr -> interrupt only on first zero crossing
+
+    if(listenerPhaseA != 0)
+    {
+        listenerPhaseA((PORT_COMP >> INT_COMP_A) & 1);
+    }
 }
 
-ISR (INT5_vect)
+ISR (PHASE_B_ISR)
 {
-    // phase B
-    listenerPhaseB((PORT_COMP >> INT_COMP_B) & 1);
+    setEnableCompB(0); // disable isr -> interrupt only on first zero crossing
+
+    if(listenerPhaseB != 0)
+    {
+        listenerPhaseB((PORT_COMP >> INT_COMP_B) & 1);
+    }
 }
 
-ISR (INT6_vect)
+ISR (PHASE_C_ISR)
 {
+    setEnableCompC(0); // disable isr -> interrupt only on first zero crossing
+
     // phase C
-    listenerPhaseC((PORT_COMP >> INT_COMP_C) & 1);
+    if(listenerPhaseC != 0)
+    {
+        listenerPhaseC((PORT_COMP >> INT_COMP_C) & 1);
+    }
 }

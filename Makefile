@@ -4,7 +4,7 @@
 # PROJECT = $(shell basename $(shell pwd))
 PROJECT = system_tester_snippet
 
-OBJS = $(PROJECT).o system.o ringbuffer.o logger.o
+OBJS = $(PROJECT).o System/ringbuffer.o System/logger.o System/timer.o System/uart.o System/pwm.o System/ext_comperator.o
 
 CC = avr-gcc
 
@@ -13,7 +13,7 @@ ADUDE_IF = /dev/ttyACM0
 ADUDE_BAUD = 115200
 ADUDE_PROT = wiring
 
-CFLAGS = -mmcu=$(MCU) -Wall -O2 -DF_CPU=16000000UL -gdwarf-2 
+CFLAGS = -mmcu=$(MCU) -Wall -O2 -DF_CPU=16000000UL -gdwarf-2
 
 all: $(PROJECT).elf flash
 
@@ -38,7 +38,7 @@ flash: $(PROJECT).hex
 
 
 clean:
-	rm -f $(PROJECT).dis $(PROJECT).elf $(PROJECT).hex 
+	rm -f $(PROJECT).dis $(PROJECT).elf $(PROJECT).hex
 
 .PHONY: clean flash
 

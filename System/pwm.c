@@ -1,166 +1,188 @@
-// __PWM________________________________________________________
-
-/* CALCULATIONS:
+/** Calculation:
  PWM Frequenz f_pwm: 25kHz
  Taktfrequenz uC f_uC: 16MHz
  PWM Auflösung RESOLUTION_PWM
  Faktor prescaler F_pre
 
- f_uC/F_pre = f_pwm*RESOLUTION_PWM
- --> F_pre = f_uC/(f_pwm*RESOLUTION_PWM)
- --> RESOLUTION_PWM = f_uC/(f_pwm*F_pre)
+ T_pwm = 1/(f_uC/F_pre) * RESOLUTION_PWM = F_pre/f_uC * RESOLUTION_PWM
+ --> f_pwm = 1/T_pwm = f_uC/(F_pre * RESOLUTION_PWM)
+ --> F_pre * RESOLUTION_PWM = f_uC/f_pwm = 640
 
- RESOLUTION_PWM = 256
- --> F_pre = f_uC/(f_pwm*RESOLUTION_PWM) = 2.5
+F_pre = 1
+RESOLUTION_PWM = 2¹⁰ = 1024
+ */
+#define RESOLUTION_PWM ((uint32_t)1024)
+#define FACTOR_PRESCALER 1
 
- f_pwm = 40kHz, RESOLUTION_PWM = 256
- --> F_pre = f_uC/(f_pwm*RESOLUTION_PWM) = 1.56
+/** TCCR1A – Timer/Counter 1 Control Register A p.154
+    |7      |6      |5      |4      |3      |2      |1      |0      |
+    |COM1A1 |COM1A0 |COM1B1 |COM1B0 |COM1C1 |COM1C0 |WGM11  |WGM10  |
 
- F_pre = 8
- --> RESOLUTION_PWM = f_uC/(f_pwm*F_pre) = 80
+Bit 7:6 – COMnA1:0: Compare Output Mode for Channel A
+Bit 5:4 – COMnB1:0: Compare Output Mode for Channel B
+Bit 3:2 – COMnC1:0: Compare Output Mode for Channel C
+kontrolliert Verhalten der output compare pins (OCnA, OCnB, OCnC):
 
- F_pre = 8, RESOLUTION_PWM=256
- --> f_pwm = f_uC/(F_pre*RESOLUTION_PWM) = 7.8kHz (zu tiefe Frequenz. Bis auf weiteres genommen)
+COMnA0 = 0 & COMnA1 = 0:
+Normal port operation, OCnA/OCnB/OCnC disconnected --> ausschalten entsprechender phase
 
- F_pre = 8, phase correct --> needs two timer cycles! --> f_pwm_pc = 2*f_pwm = 50kHz
- --> RESOLUTION_PWM = f_uC/(2*f_pwm*F_pre) = 40
+COMnA0 = 1 & COMnA1 = 1:
+Set OCnA/OCnB/OCnC on compare match when up-counting
+Clear OCnA/OCnB/OCnC on compare match when downcounting
 
- F_pre = 8, f_pwm = 10kHz, phase correct --> needs two timer cycles! --> f_pwm_pc = 2*f_pwm = 20kHz
- --> RESOLUTION_PWM = f_uC/(2*f_pwm*F_pre) = 100*/
-#define RESOLUTION_PWM 100
-#define FACTOR_PRESCALER 8
+Bit 1:0 – WGMn1:0: Waveform Generation Mode
+kontrolliert mit bits WGMn3:2 in TCCRnB den Waveform Generation Mode (Fats PWM, CTC etc.)
 
-/* REGISTERS:
- TCNT0 timer/counter 1
- OCR0A output/compare (Vergleichswerte des Timers 1). Bei fast PWM obere Grenze.
- OCR0B output/compare (Vergleichswerte des Timers 1)*/
-#define VALUE_PWM_TIMER TCNT0
-#define MAX_VALUE_PWM_TIMER OCR0A
-#define COMPARE_VALUE_PWM_TIMER OCR0B
+PWM, Phase Correct, 10-bit:
+TOP = 0x03FF = 1024
+WGM3:0 = 0011
+*/
+#define PWM_HS_CONTROLL_REGISTER_A TCCR4A
+#define PWM_HS_CONTROLL_REGISTER_A_value ((1<<COM4A1) | (1<<COM4A0) | (1<<COM4B1) | (1<<COM4B0) | (1<<COM4C1) | (1<<COM4C0) | (1<<WGM41) | (1<<WGM40))
 
-/* TCCR0A – Timer/Counter Control Register A p.126
-  |7      |6      |5      |4      |3  |2  |1      |0      |
-  |COM0A1 |COM0A0 |COM0B1 |COM0B0 |-  |-  |WGM01  |WGM00  |
+#define PWM_LS_CONTROLL_REGISTER_A TCCR5A
+#define PWM_LS_CONTROLL_REGISTER_A_value ((1<<COM5A1) | (1<<COM5A0) | (1<<COM5B1) | (1<<COM5B0) | (1<<COM5C1) | (1<<COM5C0) | (1<<WGM51) | (1<<WGM50))
 
- COM0x1:0 compare output mode
-  -definieren des states von OC0x bei match
-  -definieren der output source von OC0x
+#define PWM_HS_A_OFF (PWM_HS_CONTROLL_REGISTER_A &= ~((1<<COM4A1) | (1<<COM4A0)))
+#define PWM_HS_A_ON (PWM_HS_CONTROLL_REGISTER_A |= ((1<<COM4A1) | (1<<COM4A0)))
+#define PWM_HS_B_OFF (PWM_HS_CONTROLL_REGISTER_A &= ~((1<<COM4B1) | (1<<COM4B0)))
+#define PWM_HS_B_ON (PWM_HS_CONTROLL_REGISTER_A |= ((1<<COM4B1) | (1<<COM4B0)))
+#define PWM_HS_C_OFF (PWM_HS_CONTROLL_REGISTER_A &= ~((1<<COM4C1) | (1<<COM4C0)))
+#define PWM_HS_C_ON (PWM_HS_CONTROLL_REGISTER_A |= ((1<<COM4C1) | (1<<COM4C0)))
 
- Compare Output Mode, non PWM Mode: Table 16-2 p.126
- Normal port operation, OC0A disconnected (für soft pwm)
- COM0A1 = 0
- COM0A0 = 0
+#define PWM_LS_A_OFF (PWM_LS_CONTROLL_REGISTER_A &= ~((1<<COM5A1) | (1<<COM5A0)))
+#define PWM_LS_A_ON (PWM_LS_CONTROLL_REGISTER_A |= ((1<<COM5A1) | (1<<COM5A0)))
+#define PWM_LS_B_OFF (PWM_LS_CONTROLL_REGISTER_A &= ~((1<<COM5B1) | (1<<COM5B0)))
+#define PWM_LS_B_ON (PWM_LS_CONTROLL_REGISTER_A |= ((1<<COM5B1) | (1<<COM5B0)))
+#define PWM_LS_C_OFF (PWM_LS_CONTROLL_REGISTER_A &= ~((1<<COM5C1) | (1<<COM5C0)))
+#define PWM_LS_C_ON (PWM_LS_CONTROLL_REGISTER_A |= ((1<<COM5C1) | (1<<COM5C0)))
 
- Compare Output Mode, Fast PWM Mode: Table 16-3 p.126
- inverting fast pwm (Set OC0A on Compare Match, clear OC0A at BOTTOM)
- COM0A1 = 1
- COM0A0 = 1
+/** TCCR1B – Timer/Counter 1 Control Register B p.156
+    |7      |6      |5      |4      |3      |2      |1      |0      |
+    |ICNC1  |ICES1  |-      |WGM13  |WGM12  |CS12   |CS11   |CS10   |
 
- fast PWM: timer zählt immer von 0 bis TOP (entweder 0xFF WGM2:0 = 3, oder OCR0A wenn WGM2:0 = 7)
-  -non inverting: ab match auf BOTTOM
-  -invertinmg: ab match auf TOP <-- benötigt
+Bit 7 – ICNCn: Input Capture Noise Canceler
+Falls über Pin ICPn Counter erhöht wird, kann mittels NoiseCanceler der Input gefiltert werden.
+ICNCn = 1: activatet
+ICNCn = 0: deactivated
 
- Waveform Generation Mode Bit Description: Table 16-8 p.128
- CTC TOP = OCR0A
- WGM02 = 0 (TCCR0B register)
- WGM01 = 1
- WGM00 = 0
+Bit 6 – ICESn: Input Capture Edge Select
+Falls über Pin ICPn Counter erhöht wird, kann festgelegt werden ob bei steigender oder fallender Flanke
 
- Waveform Generation Mode Bit Description: Table 16-8 p.128
- PWM, Phase Correct TOP = OCR0A
- WGM2 = 1 (TCCR0B register)
- WGM1 = 0
- WGM0 = 1
+Bit 4:3 – WGMn3:2: Waveform Generation Mode
+Mit Bit 1:0 aus TCCR1A.
 
- Waveform Generation Mode Bit Description: Table 16-8 p.128
- fast PWM TOP = OCR0A
- WGM2 = 1 (TCCR0B register)
- WGM1 = 1
- WGM0 = 1*/
-#define CONTROL_REGISTER_A_PWM_TIMER TCCR0A
-#define CTC_SOFT_PWM_A ((0<<WGM00) | (1<<WGM01) | (0<<COM0A1) | (0<<COM0A0) | (0<<COM0B1) | (0<<COM0B0))
-#define PC_SOFT_PWM_A ((1<<WGM00) | (0<<WGM01) | (0<<COM0A1) | (0<<COM0A0) | (0<<COM0B1) | (0<<COM0B0))
-#define FAST_SOFT_PWM_A ((1<<WGM00) | (1<<WGM01) | (0<<COM0A1) | (0<<COM0A0) | (0<<COM0B1) | (0<<COM0B0))
+Bit 2:0 – CSn2:0: Clock Select
+Table 17-6 p.157
+CSn0 = 0, CSn1 = 0, CSn2 = 0: No clock source (stopped)
+CSn0 = 0, CSn1 = 0, CSn2 = 1: clk/1
+...
+*/
+#define PWM_HS_CONTROLL_REGISTER_B TCCR4B
+#define PWM_HS_CONTROLL_REGISTER_B_value ((0<<ICNC4) | (0<<ICES4) | (0<<WGM43) | (0<<WGM42) | (0<<CS42) | (0<<CS41) | (1<<CS40))
 
-/* TCCR0B – Timer/Counter Control Register B p.129
-  |7     |6       |5  |4  |3      |2      |1      |0      |
-  |FOC0A |FOC0B   |-  |-  |WGM02  |CS02   |CS01   |CS00   |
+#define PWM_LS_CONTROLL_REGISTER_B TCCR5B
+#define PWM_LS_CONTROLL_REGISTER_B_value ((0<<ICNC5) | (0<<ICES5) | (0<<WGM53) | (0<<WGM52) | (0<<CS52) | (0<<CS51) | (1<<CS50))
 
- Clock Select Bit Description Table 16-9 p.130
- clk/8
- CS02 = 0
- CS01 = 1
- CS00 = 0
+/** TCCR1C – Timer/Counter 1 Control Register C
+    |7      |6      |5      |4      |3      |2      |1      |0      |
+    |FOC1A  |FOC1B  |FOC1C  |-      |-      |-      |-      |-      |
 
- Force Output Compare A/B
- In PWM Mode zu kompatibilitätszwecken mit 0 beschrieben
- FOC0A = 0
- FOC0B = 0*/
-#define CONTROL_REGISTER_B_PWM_TIMER TCCR0B
-#define FAST_SOFT_PWM_PRESC_8_B ((1<<WGM02) | (0<<CS00) | (1<<CS01) | (0<<CS02) | (0<<FOC0A) | (0<<FOC0B))
-#define FAST_SOFT_PWM_PRESC_1024_B ((1<<WGM02) | (1<<CS00) | (0<<CS01) | (1<<CS02) | (0<<FOC0A) | (0<<FOC0B))
-#define CTC_SOFT_PWM_PRESC_1024_B ((0<<WGM02) | (1<<CS00) | (0<<CS01) | (1<<CS02) | (0<<FOC0A) | (0<<FOC0B))
-#define PC_SOFT_PWM_PRESC_8_B ((1<<WGM02) | (0<<CS00) | (1<<CS01) | (0<<CS02) | (0<<FOC0A) | (0<<FOC0B))
+Bit 7 – FOCnA: Force Output Compare for Channel A
+Bit 6 – FOCnB: Force Output Compare for Channel B
+Bit 5 – FOCnC: Force Output Compare for Channel C
+Nur aktiv falls ein no-PWM-Mode gewählt ist. Wenn auf 1 gestezt wird, wird compare match
+auf waveform generation unit gegeben. Löst jedoch keinen Interrupt aus oder setzt Timer auf 0 bei CTC.
+*/
 
-/* TIMSK0 – Timer/Counter Interrupt Mask Register p.131
-  |7  |6  |5  |4  |3  |2      |1      |0      |
-  |-  |-  |-  |-  |-  |OCIE0B |OCIE0A |TOIE0  |
- OCIE0B = 1: Timer/Counter Compare Match B interrupt is enabled
- OCIE0A = 1: Timer/Counter Compare Match A interrupt is enabled
- TOIE0 = 1: Timer/Counter0 Overflow Interrupt Enable*/
-#define ENABLE_INTERRUPTS_PWM_TIMER TIMSK0
-#define COMPARE_A_B_INTERRUPT ((1<<OCIE0B) | (1<<OCIE0A) | (0<<TOIE0))
-#define COMPARE_B_INTERRUPT ((1<<OCIE0B) | (0<<OCIE0A) | (0<<TOIE0))
+/** TCNT1H and TCNT1L – Timer/Counter 1 p.158
+|7      |6      |5      |4      |3      |2      |1      |0      |
+|TCNT15 |TCNT14 |TCNT13 |TCNT12 |TCNT11 |TCNT10 |TCNT9  |TCNT8  |  TCNT1H
 
-/* TIFR0 – Timer/Counter 0 Interrupt Flag Register p.131
-  |7  |6  |5  |4  |3  |2      |1      |0      |
-  |-  |-  |-  |-  |-  |OCF0B  |OCF0A  |TOV0   |
- OCF0B: Timer/Counter 0 Output Compare B Match Flag. Gesetzt falls OCR0B=TCNT0
- OCF0A: Timer/Counter 0 Output Compare A Match Flag. Gesetzt falls OCR0A=TCNT0
- TOV0: Timer/Counter0 Overflow Flag*/
-#define INTERRUPT_FLAGS_PWM_TIMER TIFR0
-#define SET_HIGH_FLAG OCF0B
-#define SET_LOW_FLAG OCF0A
+|7      |6      |5      |4      |3      |2      |1      |0      |
+|TCNT7  |TCNT6  |TCNT5  |TCNT4  |TCNT3  |TCNT2  |TCNT1  |TCNT0  |  TCNT1L
 
-// GPIOs SOFT PWM:
+Wert timer 1.
+
+Muss speziel angesprochen werden:
+Accessing 16-bit Registers p.135
+Wenn 16bit Register gelesen wird, muss zuerst das Low-Byte gelsesen werden (Das High-Byte wird von diversen Registern geteilt)
+Wenn 16bit beschrieben werden soll, muss zuerst das High-Byte beschrieben werden.
+*/
+
+/** OCR1AH and OCR1AL – Output Compare Register 1 A p.159
+|7      |6      |5      |4      |3      |2      |1      |0      |
+|OCR1A15|OCR1A14|OCR1A13|OCR1A12|OCR1A11|OCR1A10|OCR1A9 |OCR1A8 |  OCR1AH
+
+|7      |6      |5      |4      |3      |2      |1      |0      |
+|OCR1A7 |OCR1A6 |OCR1A5 |OCR1A4 |OCR1A3 |OCR1A2 |OCR1A1 |OCR1A0 |  OCR1AL
+
+Vergleichswert Timer 1 Kanal A.
+*/
+#define PWM_HS_A_COMPARE_VALUE_HIGH OCR4AH
+#define PWM_HS_A_COMPARE_VALUE_LOW OCR4AL
+#define PWM_HS_B_COMPARE_VALUE_HIGH OCR4BH
+#define PWM_HS_B_COMPARE_VALUE_LOW OCR4BL
+#define PWM_HS_C_COMPARE_VALUE_HIGH OCR4CH
+#define PWM_HS_C_COMPARE_VALUE_LOW OCR4CL
+
+#define PWM_LS_A_COMPARE_VALUE_HIGH OCR5AH
+#define PWM_LS_A_COMPARE_VALUE_LOW OCR5AL
+#define PWM_LS_B_COMPARE_VALUE_HIGH OCR5BH
+#define PWM_LS_B_COMPARE_VALUE_LOW OCR5BL
+#define PWM_LS_C_COMPARE_VALUE_HIGH OCR5CH
+#define PWM_LS_C_COMPARE_VALUE_LOW OCR5CL
+
+/** ICR1H and ICR1L – Input Capture Register 1 p.161
+|7      |6      |5      |4      |3      |2      |1      |0      |
+|ICR115 |ICR114 |ICR113 |ICR112 |ICR111 |ICR110 |ICR109 |ICR108 |  ICR1H
+
+|7      |6      |5      |4      |3      |2      |1      |0      |
+|ICR107 |ICR106 |ICR105 |ICR104 |ICR103 |ICR102 |ICR101 |ICR100 |  ICR1L
+
+Wird mit Counter TCNTn erhöht, wenn event an ICPn Pin anliegt.
+*/
+#define PWM_HS_MAX_VALUE_HIGH ICR4H
+#define PWM_HS_MAX_VALUE_LOW ICR4L
+
+#define PWM_LS_MAX_VALUE_HIGH ICR5H
+#define PWM_LS_MAX_VALUE_LOW ICR5L
+
+/** TIMSK1 – Timer/Counter 1 Interrupt Mask Register
+|7      |6      |5      |4      |3      |2      |1      |0      |
+|-      |-      |ICIE1  |-      |OCIE1C |OCIE1B |OCIE1A |TOIE1  |
+
+Bit 5 – ICIEn: Timer/Countern, Input Capture Interrupt Enable
+Bit 3 – OCIEnC: Timer/Countern, Output Compare C Match Interrupt Enable
+Bit 2 – OCIEnB: Timer/Countern, Output Compare B Match Interrupt Enable
+Bit 1 – OCIEnA: Timer/Countern, Output Compare A Match Interrupt Enable
+Bit 0 – TOIEn: Timer/Countern, Overflow Interrupt Enable
+*/
+
+/** TIFR1 – Timer/Counter1 Interrupt Flag Register
+|7      |6      |5      |4      |3      |2      |1      |0      |
+|-      |-      |ICF1   |-      |OCF1C  |OCF1B  |OCF1A  |TOV1   |
+
+Flags des entsprechenden Interrupts.
+*/
+
+/** GPIO Ports
+*/
 #define TRISTATE_INPUT 0
 #define TRISTATE_OUTPUT 1
 
-#define PORT_PWM1 PORTB
-#define PORT_PWM2 PORTB
-#define PORT_PWM3 PORTB
-#define PORT_PWM4 PORTB
-#define PORT_PWM5 PORTH
-#define PORT_PWM6 PORTH
+#define PORT_HS_PWM PORTH
+#define TRISTATE_HS_PWM DDRH
+#define PIN_HS_A_PWM 3
+#define PIN_HS_B_PWM 4
+#define PIN_HS_C_PWM 5
 
-#define TRISTATE_PWM1 DDRB
-#define TRISTATE_PWM2 DDRB
-#define TRISTATE_PWM3 DDRB
-#define TRISTATE_PWM4 DDRB
-#define TRISTATE_PWM5 DDRH
-#define TRISTATE_PWM6 DDRH
+#define PORT_LS_PWM PORTL
+#define TRISTATE_LS_PWM DDRL
+#define PIN_LS_A_PWM 3
+#define PIN_LS_B_PWM 4
+#define PIN_LS_C_PWM 5
 
-#define PIN_PWM1 7
-#define PIN_PWM2 6
-#define PIN_PWM3 5
-#define PIN_PWM4 4
-#define PIN_PWM1 6
-#define PIN_PWM1 5
-
-#define POWER_ON_A_HIGHSIDE (PORT_PWM1 |= (1<<PIN_PWM1))
-#define POWER_OFF_A_HIGHSIDE (PORT_PWM1 &= ~(1<<PIN_PWM1))
-#define POWER_ON_A_LOWSIDE (PORT_PWM2 |= (1<<PIN_PWM2))
-#define POWER_OFF_A_LOWSIDE (PORT_PWM2 &= ~(1<<PIN_PWM2))
-
-#define POWER_ON_B_HIGHSIDE (PORT_PWM3 |= (1<<PIN_PWM3))
-#define POWER_OFF_B_HIGHSIDE (PORT_PWM3 &= ~(1<<PIN_PWM3))
-#define POWER_ON_B_LOWSIDE (PORT_PWM4 |= (1<<PIN_PWM4))
-#define POWER_OFF_B_LOWSIDE (PORT_PWM4 &= ~(1<<PIN_PWM4))
-
-#define POWER_ON_C_HIGHSIDE (PORT_PWM5 |= (1<<PIN_PWM5))
-#define POWER_OFF_C_HIGHSIDE (PORT_PWM5 &= ~(1<<PIN_PWM5))
-#define POWER_ON_C_LOWSIDE (PORT_PWM6 |= (1<<PIN_PWM6))
-#define POWER_OFF_C_LOWSIDE (PORT_PWM6 &= ~(1<<PIN_PWM6))
 
 // INCLUDES:
 #include "system.h"
@@ -170,136 +192,72 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
-void (*activePhase1)(void);
-void (*activePhase2)(void);
-
-// helping functions
-void toggle_A_Highside()
-{
-    PORT_PWM1 ^= (1<<PIN_PWM1);
-}
-
-void toggle_A_Lowside()
-{
-    PORT_PWM2 ^= (1<<PIN_PWM2);
-}
-
-void toggle_B_Highside()
-{
-    PORT_PWM3 ^= (1<<PIN_PWM3);
-}
-
-void toggle_B_Lowside()
-{
-    PORT_PWM4 ^= (1<<PIN_PWM4);
-}
-
-void toggle_C_Highside()
-{
-    PORT_PWM5 ^= (1<<PIN_PWM5);
-}
-
-void toggle_C_Lowside()
-{
-    PORT_PWM6 ^= (1<<PIN_PWM6);
-}
-
-
-// interrupts
-ISR (TIMER0_COMPB_vect)
-{
-    // power on pwm
-    activePhase1();
-    activePhase2();
-}
-
-ISR (TIMER0_COMPA_vect)
-{
-    // power off pwm
-    activePhase1();
-    activePhase2();
-}
-
 // pwm
 void initPWM()
 {
-    // soft fast pwm
-    /*CONTROL_REGISTER_A_PWM_TIMER |= FAST_SOFT_PWM_A;
-    CONTROL_REGISTER_B_PWM_TIMER |= FAST_SOFT_PWM_PRESC_1024_B;
+    logMsg("Init PWM...");
 
-    MAX_VALUE_PWM_TIMER = RESOLUTION_PWM;
-    COMPARE_VALUE_PWM_TIMER = 50;
-    ENABLE_INTERRUPTS_PWM_TIMER |= COMPARE_A_B_INTERRUPT;*/
+    PRR1 = 0;
 
-    // phase correct soft pwm
-    CONTROL_REGISTER_A_PWM_TIMER |= PC_SOFT_PWM_A;
-    CONTROL_REGISTER_B_PWM_TIMER |= PC_SOFT_PWM_PRESC_8_B;
+    // config GPIOs
+    TRISTATE_HS_PWM |= ((TRISTATE_OUTPUT<<PIN_HS_A_PWM) | (TRISTATE_OUTPUT<<PIN_HS_B_PWM) | (TRISTATE_OUTPUT<<PIN_HS_C_PWM));
+    TRISTATE_LS_PWM |= ((TRISTATE_OUTPUT<<PIN_LS_A_PWM) | (TRISTATE_OUTPUT<<PIN_LS_B_PWM) | (TRISTATE_OUTPUT<<PIN_LS_C_PWM));
 
-    MAX_VALUE_PWM_TIMER = RESOLUTION_PWM;
-    COMPARE_VALUE_PWM_TIMER = 50;
-    ENABLE_INTERRUPTS_PWM_TIMER |= COMPARE_B_INTERRUPT;
+    // config timers
+    PWM_HS_CONTROLL_REGISTER_A |= PWM_HS_CONTROLL_REGISTER_A_value;
+    PWM_LS_CONTROLL_REGISTER_A |= PWM_LS_CONTROLL_REGISTER_A_value;
 
-    // init gpios for soft pwm
-    TRISTATE_PWM1 |= (TRISTATE_OUTPUT<<PIN_PWM1);
-    TRISTATE_PWM2 |= (TRISTATE_OUTPUT<<PIN_PWM2);
-    TRISTATE_PWM3 |= (TRISTATE_OUTPUT<<PIN_PWM3);
-    TRISTATE_PWM4 |= (TRISTATE_OUTPUT<<PIN_PWM4);
-    TRISTATE_PWM5 |= (TRISTATE_OUTPUT<<PIN_PWM5);
-    TRISTATE_PWM6 |= (TRISTATE_OUTPUT<<PIN_PWM6);
+    PWM_HS_CONTROLL_REGISTER_B |= PWM_HS_CONTROLL_REGISTER_B_value;
+    PWM_LS_CONTROLL_REGISTER_B |= PWM_LS_CONTROLL_REGISTER_B_value;
 }
 
 void changePhaseState(char state)
 {
-    // disable pwm interrupts
-    ENABLE_INTERRUPTS_PWM_TIMER TIMSK0 &= ((0<<OCIE0B) | (0<<OCIE0A));
+    //logVar("New phasestate",state,16);
 
-    // shutdown all phases
-    POWER_OFF_A_HIGHSIDE;
-    POWER_OFF_A_LOWSIDE;
-    POWER_OFF_B_HIGHSIDE;
-    POWER_OFF_B_LOWSIDE;
-    POWER_OFF_C_HIGHSIDE;
-    POWER_OFF_C_LOWSIDE;
+    PWM_HS_A_OFF;
+    PWM_HS_B_OFF;
+    PWM_HS_C_OFF;
+    PWM_LS_A_OFF;
+    PWM_LS_B_OFF;
+    PWM_LS_C_OFF;
 
     switch(state)
     {
     case 0:
-        activePhase1 = $toggle_A_Highside();
-        activePhase2 = $toggle_C_Lowside();
+        PWM_HS_A_ON;
+        PWM_LS_C_ON;
         break;
 
     case 1:
-        activePhase1 = $toggle_B_Highside();
-        activePhase2 = $toggle_C_Lowside();
+        PWM_HS_B_ON;
+        PWM_LS_C_ON;
         break;
 
     case 2:
-        activePhase1 = $toggle_B_Highside();
-        activePhase2 = $toggle_A_Lowside();
+        PWM_HS_B_ON;
+        PWM_LS_A_ON;
         break;
 
     case 3:
-        activePhase1 = $toggle_C_Highside();
-        activePhase2 = $toggle_A_Lowside();
+        PWM_HS_C_ON;
+        PWM_LS_A_ON;
         break;
 
     case 4:
-        activePhase1 = $toggle_C_Highside();
-        activePhase2 = $toggle_B_Lowside();
+        PWM_HS_C_ON;
+        PWM_LS_B_ON;
         break;
 
     case 5:
-        activePhase1 = $toggle_A_Highside();
-        activePhase2 = $toggle_B_Lowside();
+        PWM_HS_A_ON;
+        PWM_LS_B_ON;
         break;
     }
-
-    // enable pwm interrupts
-    ENABLE_INTERRUPTS_PWM_TIMER TIMSK0 |= ((1<<OCIE0B) | (1<<OCIE0A));
 }
 
-/*
-dutyCycle = 0 - 100, alles >100 entspricht 100
+/**
+    dutyCycle = 0 - 100, alles >100 entspricht 100
 */
 void setPWMDutyCycle(char dutyCycle)
 {
@@ -308,7 +266,28 @@ void setPWMDutyCycle(char dutyCycle)
         dutyCycle = 100;
     }
 
-    char newCompareValue = dutyCycle*RESOLUTION_PWM/100;
-    COMPARE_VALUE_PWM_TIMER = newCompareValue;
+    //logVar("duty cycle", dutyCycle, 20);
+    //logVar("res", RESOLUTION_PWM, 20);
+
+    //uint32_t temp = ((uint16_t)dutyCycle)*RESOLUTION_PWM;
+    //logVar("temp", temp, 30);
+
+    uint32_t newCompareValue = ((uint16_t)dutyCycle)*RESOLUTION_PWM/((uint16_t)100); // TEMP: Wieso stimmt berechnung??????????????????????????????????????????????????????
+
+    //logVar("duty cycle", newCompareValue, 20);
+
+    PWM_HS_A_COMPARE_VALUE_HIGH = (char)(newCompareValue>>8);
+    PWM_HS_A_COMPARE_VALUE_LOW = (char)newCompareValue;
+    PWM_HS_B_COMPARE_VALUE_HIGH = (char)(newCompareValue>>8);
+    PWM_HS_B_COMPARE_VALUE_LOW = (char)newCompareValue;
+    PWM_HS_C_COMPARE_VALUE_HIGH = (char)(newCompareValue>>8);
+    PWM_HS_C_COMPARE_VALUE_LOW = (char)newCompareValue;
+
+    PWM_LS_A_COMPARE_VALUE_HIGH = (char)(newCompareValue>>8);
+    PWM_LS_A_COMPARE_VALUE_LOW = (char)newCompareValue;
+    PWM_LS_B_COMPARE_VALUE_HIGH = (char)(newCompareValue>>8);
+    PWM_LS_B_COMPARE_VALUE_LOW = (char)newCompareValue;
+    PWM_LS_C_COMPARE_VALUE_HIGH = (char)(newCompareValue>>8);
+    PWM_LS_C_COMPARE_VALUE_LOW = (char)newCompareValue;
 }
 
