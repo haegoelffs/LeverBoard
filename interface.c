@@ -1,50 +1,49 @@
 /*
-last change: 20.4.2017
-version: 1.2
+last change: 08.5.2017
+version: 0.1
 */
-
 
 #include "system.h"
 #include "interface.h"
 #include <avr/io.h>
 
+/*
 void initInterface()
 		{
 			return;
 		};
-
+*/
 void setNoBreakAlert()
 	{
 		setPiezoSound(1);
-		//Start Timer_user 
+		startTimeMeasurement2();
 	};
 	
 void quitNoBtreakAlert()
 	{
-		/*If Timer Timer_user1 >= 1 sek
+		uint16_t ms = getTime2();
+		if (ms > 2000)
 		{
-			//setPiezoSound(0);
-			//stop Timer_user1 + reset Timer_user1;
+			uint16_t stopTimeMeasurement2();
+			setPiezoSound(0);
 		}
-		*/
 	};
 
 void setBatteryAlert()									//energy is the Battery voltage, it is a value from 1 to 4 (1 is very low, 4 is very good)
 	{
 		
 		setPiezoSound(1);
-		//Start Timer_user1
-		
+		startTimeMeasurement2();
 	};
 	
 void quitBatteryAlert()
 	{
-		/*If Timer Timer_user1 >= 1 sek
+		uint16_t ms = getTime2();
+		if (ms > 1000) 
 		{
-			//setPiezoSound(0);
-			//stoptimer + reset Timer;
+			uint16_t stopTimeMeasurement2();
+			setPiezoSound(0);
 		}
-		*/  
 	};
 	
 
@@ -66,10 +65,18 @@ void flashLEDs(char sec)
 signed char give_newcurrent(void);			//gets hallvoltage returns wished power (MAX POWER 42.5 A)
 	{
 		char front = readInterfaceSensorsVoltage(0);	//Hallsensor front
-		//char tail = readInterfaceSensorsVoltage(1);		//Hallsensor tail									
-		if(front < (char)10)							//correction factor for hall sensors (ANPASSEN!!!)	
+		char tail = readInterfaceSensorsVoltage(1);	   //Hallsensor tail
+		char delta_sensors;	
+		if(front > tail) 
 		{
-			char front = 0;
-		}									
-		return (signed char) (front * (char) 40) / (char) 255;     //Return wished current(40 set as Maximum)
+			delta_sensors = front - tail;
+		}
+		else delta_sensors = tail - front;
+		if((delta_sensors < 51))
+		{
+			return (signed char)0;
+		}
+		else if (delta_sensors > 255) return (signed char 42);
+		else return (signed char)((42 * delta_sensors)/255);			
+		
 	};

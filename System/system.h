@@ -42,7 +42,7 @@ uint16_t stopTimeMeasurement2();
 // analog values
 void initAnalog();
 char readBatteryVoltage();
-char readPhaseCurrnet(char phase);
+char readPhaseCurrnet(char phase); //value between 0 and 42, where 42 stands for 42 Ampére
 
 // sensor 0 = Front
 // sensor 1 = Back
