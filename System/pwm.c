@@ -1,17 +1,29 @@
 /** Calculation:
- PWM Frequenz f_pwm: 25kHz
- Taktfrequenz uC f_uC: 16MHz
- PWM Auflösung RESOLUTION_PWM
- Faktor prescaler F_pre
+PWM Frequenz f_pwm: 25kHz
+Taktfrequenz uC f_uC: 16MHz
+PWM Auflösung RESOLUTION_PWM
+Faktor prescaler F_pre
 
- T_pwm = 1/(f_uC/F_pre) * RESOLUTION_PWM = F_pre/f_uC * RESOLUTION_PWM
- --> f_pwm = 1/T_pwm = f_uC/(F_pre * RESOLUTION_PWM)
- --> F_pre * RESOLUTION_PWM = f_uC/f_pwm = 640
+T_pwm = 1/(f_uC/F_pre) * RESOLUTION_PWM = F_pre/f_uC * RESOLUTION_PWM
+--> f_pwm = 1/T_pwm = f_uC/(F_pre * RESOLUTION_PWM)
+--> F_pre * RESOLUTION_PWM = f_uC/f_pwm = 640
 
-F_pre = 1
-RESOLUTION_PWM = 2¹⁰ = 1024
+ Berechnung 1:
+    F_pre = 1
+    RESOLUTION_PWM = 2¹⁰ = 1024
+    Modus: Phase Correct PWM Mode --> f_pwm * 1/2
+    T_pwm = 1/(16e6) * 2¹⁰ * 2 = 128us
+    f_pwm = 1/T_pwm = 7.8kHz
+
+Berechnung 2:
+    F_pre = 1
+    f_pwm = 25kHz
+    Modus: Phase Correct PWM Mode --> f_pwm * 1/2
+    RESOLUTION_PWM = f_uC/(2*f_pwm * F_pre) = 320
+
  */
-#define RESOLUTION_PWM ((uint32_t)1024)
+//#define RESOLUTION_PWM ((uint32_t)1024)
+#define RESOLUTION_PWM ((uint16_t)320)
 #define FACTOR_PRESCALER 1
 
 /** TCCR1A – Timer/Counter 1 Control Register A p.154
@@ -36,12 +48,16 @@ kontrolliert mit bits WGMn3:2 in TCCRnB den Waveform Generation Mode (Fats PWM, 
 PWM, Phase Correct, 10-bit:
 TOP = 0x03FF = 1024
 WGM3:0 = 0011
+
+PWM, Phase Correct:
+TOP = ICRn
+WGM3:0 = 1010
 */
 #define PWM_HS_CONTROLL_REGISTER_A TCCR4A
-#define PWM_HS_CONTROLL_REGISTER_A_value ((1<<COM4A1) | (1<<COM4A0) | (1<<COM4B1) | (1<<COM4B0) | (1<<COM4C1) | (1<<COM4C0) | (1<<WGM41) | (1<<WGM40))
+#define PWM_HS_CONTROLL_REGISTER_A_value ((1<<COM4A1) | (1<<COM4A0) | (1<<COM4B1) | (1<<COM4B0) | (1<<COM4C1) | (1<<COM4C0) | (1<<WGM41) | (0<<WGM40))
 
 #define PWM_LS_CONTROLL_REGISTER_A TCCR5A
-#define PWM_LS_CONTROLL_REGISTER_A_value ((1<<COM5A1) | (1<<COM5A0) | (1<<COM5B1) | (1<<COM5B0) | (1<<COM5C1) | (1<<COM5C0) | (1<<WGM51) | (1<<WGM50))
+#define PWM_LS_CONTROLL_REGISTER_A_value ((1<<COM5A1) | (1<<COM5A0) | (1<<COM5B1) | (1<<COM5B0) | (1<<COM5C1) | (1<<COM5C0) | (1<<WGM51) | (0<<WGM50))
 
 #define PWM_HS_A_OFF (PWM_HS_CONTROLL_REGISTER_A &= ~((1<<COM4A1) | (1<<COM4A0)))
 #define PWM_HS_A_ON (PWM_HS_CONTROLL_REGISTER_A |= ((1<<COM4A1) | (1<<COM4A0)))
@@ -79,10 +95,10 @@ CSn0 = 0, CSn1 = 0, CSn2 = 1: clk/1
 ...
 */
 #define PWM_HS_CONTROLL_REGISTER_B TCCR4B
-#define PWM_HS_CONTROLL_REGISTER_B_value ((0<<ICNC4) | (0<<ICES4) | (0<<WGM43) | (0<<WGM42) | (0<<CS42) | (0<<CS41) | (1<<CS40))
+#define PWM_HS_CONTROLL_REGISTER_B_value ((0<<ICNC4) | (0<<ICES4) | (1<<WGM43) | (0<<WGM42) | (0<<CS42) | (0<<CS41) | (1<<CS40))
 
 #define PWM_LS_CONTROLL_REGISTER_B TCCR5B
-#define PWM_LS_CONTROLL_REGISTER_B_value ((0<<ICNC5) | (0<<ICES5) | (0<<WGM53) | (0<<WGM52) | (0<<CS52) | (0<<CS51) | (1<<CS50))
+#define PWM_LS_CONTROLL_REGISTER_B_value ((0<<ICNC5) | (0<<ICES5) | (1<<WGM53) | (0<<WGM52) | (0<<CS52) | (0<<CS51) | (1<<CS50))
 
 /** TCCR1C – Timer/Counter 1 Control Register C
     |7      |6      |5      |4      |3      |2      |1      |0      |
@@ -197,7 +213,7 @@ void initPWM()
 {
     logMsg("Init PWM...");
 
-    PRR1 = 0;
+    //PRR1 = 0;
 
     // config GPIOs
     TRISTATE_HS_PWM |= ((TRISTATE_OUTPUT<<PIN_HS_A_PWM) | (TRISTATE_OUTPUT<<PIN_HS_B_PWM) | (TRISTATE_OUTPUT<<PIN_HS_C_PWM));
@@ -209,9 +225,14 @@ void initPWM()
 
     PWM_HS_CONTROLL_REGISTER_B |= PWM_HS_CONTROLL_REGISTER_B_value;
     PWM_LS_CONTROLL_REGISTER_B |= PWM_LS_CONTROLL_REGISTER_B_value;
+
+    PWM_HS_MAX_VALUE_HIGH = (char)(RESOLUTION_PWM>>8);
+    PWM_HS_MAX_VALUE_LOW = (char)(RESOLUTION_PWM);
+    PWM_LS_MAX_VALUE_HIGH = (char)(RESOLUTION_PWM>>8);
+    PWM_LS_MAX_VALUE_LOW = (char)(RESOLUTION_PWM);
 }
 
-void changePhaseState(char state)
+void changePhaseState(uint8_t state)
 {
     //logVar("New phasestate",state,16);
 
@@ -259,7 +280,7 @@ void changePhaseState(char state)
 /**
     dutyCycle = 0 - 100, alles >100 entspricht 100
 */
-void setPWMDutyCycle(char dutyCycle)
+void setPWMDutyCycle(uint8_t dutyCycle)
 {
     if(dutyCycle > 100)
     {
@@ -269,10 +290,10 @@ void setPWMDutyCycle(char dutyCycle)
     //logVar("duty cycle", dutyCycle, 20);
     //logVar("res", RESOLUTION_PWM, 20);
 
-    //uint32_t temp = ((uint16_t)dutyCycle)*RESOLUTION_PWM;
+    uint16_t temp = dutyCycle*RESOLUTION_PWM; // max.: 100*320 = 32000 = 0b0111 1101 0000 0000 --> 16Bit
     //logVar("temp", temp, 30);
 
-    uint32_t newCompareValue = ((uint16_t)dutyCycle)*RESOLUTION_PWM/((uint16_t)100); // TEMP: Wieso stimmt berechnung??????????????????????????????????????????????????????
+    uint16_t newCompareValue = temp/((uint16_t)100); // TEMP: Wieso stimmt berechnung??????????????????????????????????????????????????????
 
     //logVar("duty cycle", newCompareValue, 20);
 

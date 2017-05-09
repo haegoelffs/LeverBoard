@@ -61,3 +61,11 @@ void logVar(char *name, int var, char stringLenght)
     transmitString(str);
     writeNewLine();
 }
+
+void logUnsignedInt(char *name, uint32_t var, char stringLenght)
+{
+    char str[stringLenght];
+    sprintf(str, "%s:%u", name, var);
+    transmitString(str);
+    writeNewLine();
+}

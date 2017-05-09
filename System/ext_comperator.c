@@ -74,7 +74,9 @@ void initComp()
     EXT_INTERRUPT_4TO7_CONTROLL_REGISTER |= (1<<4);
     EXT_INTERRUPT_4TO7_CONTROLL_REGISTER &= ~(1<<(4+1));
 
-    ENABLE_EXTERN_INTERRUPTS_REGISTER |= (1<<INT_COMP_A);
+    setEnableCompA(0);
+    setEnableCompB(0);
+    setEnableCompC(0);
 }
 
 void setEnableCompA(char enable)
@@ -85,7 +87,7 @@ void setEnableCompA(char enable)
     }
     else
     {
-        ENABLE_EXTERN_INTERRUPTS_REGISTER &= ~(0<<INT_COMP_A);
+        ENABLE_EXTERN_INTERRUPTS_REGISTER &= ~(1<<INT_COMP_A);
     }
 }
 
@@ -97,7 +99,7 @@ void setEnableCompB(char enable)
     }
     else
     {
-        ENABLE_EXTERN_INTERRUPTS_REGISTER &= ~(0<<INT_COMP_B);
+        ENABLE_EXTERN_INTERRUPTS_REGISTER &= ~(1<<INT_COMP_B);
     }
 }
 
@@ -109,7 +111,7 @@ void setEnableCompC(char enable)
     }
     else
     {
-        ENABLE_EXTERN_INTERRUPTS_REGISTER &= ~(0<<INT_COMP_C);
+        ENABLE_EXTERN_INTERRUPTS_REGISTER &= ~(1<<INT_COMP_C);
     }
 }
 

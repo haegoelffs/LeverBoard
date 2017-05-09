@@ -8,4 +8,6 @@ void writeBuffered();
 
 // normal functions
 void logMsg(char *msg);
+void logUnsignedInt(char *name, uint32_t var, char stringLenght);
+void writeNewLine();
 #endif // LOGGER_H_INCLUDED

@@ -10,7 +10,7 @@ void initPWM();
     Input:
     0 <= dutyCycle <= 100 every handed value > 100 will be interpreted as 100
  **/
-void setPWMDutyCycle(char dutyCycle);
+void setPWMDutyCycle(uint8_t dutyCycle);
 
 /** Changes the output channels for the pwm.
     Input:
@@ -22,7 +22,7 @@ void setPWMDutyCycle(char dutyCycle);
     state = 5: A heavyside, B lowside
     state > 5: Will be ignored
 **/
-void changePhaseState(char state);
+void changePhaseState(uint8_t state);
 
 // timers
 void initTimers();
@@ -30,6 +30,9 @@ void initTimers();
 /** Calls the handed function after the handed time
 **/
 void startAfterMs1(uint16_t ms, void (*fn)(void));
+void startAfterUs(uint32_t time_us, void (*fn)(void));
+
+uint32_t getSystimeInUs();
 
 void startTimeMeasurement1(void (*timerOverflowCallback)(void));
 uint16_t getTime1();
@@ -47,6 +50,11 @@ char readPhaseCurrnet(char phase); //value between 0 and 42, where 42 stands for
 // sensor 0 = Front
 // sensor 1 = Back
 char readInterfaceSensorsVoltage(char sensor);
+
+char readReference1();
+char readReference2();
+char readReference3();
+char readReference4();
 
 
 // comperators
