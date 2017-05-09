@@ -14,25 +14,23 @@ return;
 
 char getBatteryState()
 {
-	char BatteryState;
 	char voltage = readBatteryVoltage();
-	if (voltage <= 21)
-		{
-			BatteryState = 0;
-		}
-	else if (voltage <= 220)        //22V
-		{
-			BatteryState = 1;
-		}
-	else if (voltage <= 225)        //22.5V
+	if(voltage <= 21) 
 	{
-		BatteryState = 2;
+		return 0;
 	}
-	else if (voltage < 250)        //24.5 V
+	else if(voltage <= 220) //22V
 	{
-		BatteryState = 3;
+		 return 1;		
 	}
-	else
-		BatteryState = 4;            //bigger/equal  25 V
-	return BatteryState;
-};
+	else if (voltage <= 225) //22.5V
+	{
+		return 2;
+	}
+	else if (voltage < 250) 
+	{
+		return 3;       //24.5 V
+	}
+	else return 4;	    //bigger/equal  25 V*/
+
+}

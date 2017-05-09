@@ -12,11 +12,11 @@ void initInterface();
 void setNoBreakAlert();
 void quitNoBtreakAlert();
 
-void setBatteryAlert(char energy);
+void setBatteryAlert();
 void quitBatteryAlert();
-
+void timeroverflow2();
 void setEnergyLEDs(char energy);     
-void flashLEDs(unsigned char tmp, char ms);
+void flashLEDs();
 signed char give_newcurrent(void);
 
 #endif // INTERFACE_H_INCLUDED
