@@ -66,9 +66,9 @@ void initComp();
         --> edge = 0: falling edge
         --> edge = 1: rising edge
 **/
-void registerVoltageZeroCrossingListenerPhaseA(void (*listener)(char edge));
-void registerVoltageZeroCrossingListenerPhaseB(void (*listener)(char edge));
-void registerVoltageZeroCrossingListenerPhaseC(void (*listener)(char edge));
+void registerVoltageZeroCrossingListenerPhaseA(void (*listener)(char), char edge);		//char edge needs to be passed as an separate argument
+void registerVoltageZeroCrossingListenerPhaseB(void (*listener)(char), char edge);		//char edge needs to be passed as an separate argument
+void registerVoltageZeroCrossingListenerPhaseC(void (*listener)(char), char edge);		//char edge needs to be passed as an separate argument
 
 /** Enables the comperator for the phase A.
     Input:

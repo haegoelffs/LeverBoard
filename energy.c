@@ -33,6 +33,6 @@ char getBatteryState()
 		BatteryState = 3;
 	}
 	else
-		BatterState = 4;            //bigger/equal  25 V
+		BatteryState = 4;            //bigger/equal  25 V
 	return BatteryState;
 };
