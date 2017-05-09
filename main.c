@@ -3,6 +3,7 @@
 last change: 08.5.2017
 version: 0.1
 */
+#define F_CPU 16000000UL
 #include <avr/io.h>
 #include <stdint.h>
 
