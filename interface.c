@@ -81,6 +81,22 @@ signed char give_newcurrent(void);			//gets hallvoltage returns wished power (MA
 		
 	};
 
+char give_new_dutycycle()
+{
+	char front = readInterfaceSensorsVoltage(0);	//Hallsensor front
+	char tail = readInterfaceSensorsVoltage(1);	   //Hallsensor tail
+	char delta_sensors;
+	if(front > tail)
+	{
+		delta_sensors = front - tail;
+	}
+	else delta_sensors = tail - front;
+	if((delta_sensors < 51))
+	{
+		return 0;
+	}
+	else return ((100*delta_sensors)/255);
+}
 
 void timeroverflow2()
 {

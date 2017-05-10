@@ -12,6 +12,16 @@ void initEnergy()
 return;
 };*/
 
+//Turns Mosfets off if current is higher than 47 Ampére and turns on Piezzo
+void emergencyShutDown(char current)
+{
+	if(current > 47)
+	{
+		switchPwmOnOff(0);
+		setNoBreakAlert();
+	}
+}
+
 char getBatteryState()
 {
 	char voltage = readBatteryVoltage();

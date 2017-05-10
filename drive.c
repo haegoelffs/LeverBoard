@@ -87,7 +87,16 @@ char give_actualcurrent()
 	}
 }
 
-
+char setPWMDutyCycle_dr(char dutyCycle, char current)
+{
+	if(current < 47)
+	{
+		setPWMDutyCycle(dutyCycle);
+		return dutyCycle;
+	}
+	else if (dutyCycle != 0) return dutyCycle -10
+	else return 0;
+}
 
 void rise_sink_pwm_dutyc(char new_current,char actual_current, char duty_cycle)
 {
@@ -104,4 +113,3 @@ void rise_sink_pwm_dutyc(char new_current,char actual_current, char duty_cycle)
 	else duty_cycle= 0;
 	setPWMDutyCycle(duty_cycle);
 }
-

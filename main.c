@@ -86,14 +86,11 @@ int main(void)
 		}
 		
 		
-		
-		//get wished current + set wisched current
-		signed char new_current = give_newcurrent();
+		//signed char new_current = give_newcurrent();
+		duty_cycle= give_new_dutycycle();
 		char actual_current = give_actualcurrent(phase_state);
-		//set duty_cycle to reach wisched current;
-		rise_sink_pwm_dutyc(new_current,actual_current,duty_cycle);
-		
-		
-		
+		duty_cycle = setPWMDutyCycle_dr(duty_cycle, actual_current);
+		//rise_sink_pwm_dutyc(new_current,actual_current,duty_cycle);
+		emergencyShutDown(actual_current);
 	}
 }
