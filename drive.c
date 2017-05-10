@@ -89,7 +89,7 @@ char give_actualcurrent()
 
 char setPWMDutyCycle_dr(char dutyCycle, char current)
 {
-	if(current < 47)
+	if(current <= 42)
 	{
 		setPWMDutyCycle(dutyCycle);
 		return dutyCycle;
