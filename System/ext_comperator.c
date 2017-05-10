@@ -15,6 +15,7 @@
    Table 15-1 p.110
    ISCn1 = 0, ISCn0 = 1 --> Fallende und steigende Flanken erzeugen Interrupt*/
 #define EXT_INTERRUPT_0TO3_CONTROLL_REGISTER TEICRA
+#define EXT_INTERRUPT_0TO3_CONTROLL_REGISTER_value ((0<<ISC31) | (0<<ISC30) | (0<<ISC21) | (0<<ISC20) | (0<<ISC11) | (0<<ISC10) | (0<<ISC01) | (0<<ISC00))
 
 /** EICRB – External Interrupt Control Register B p.111
     |7      |6      |5      |4      |3      |2      |1      |0      |
@@ -25,15 +26,20 @@
    Table 15-3 p.111
    ISCn1 = 0, ISCn0 = 1 --> Fallende und steigende Flanken erzeugen Interrupt*/
 #define EXT_INTERRUPT_4TO7_CONTROLL_REGISTER EICRB
+#define EXT_INTERRUPT_4TO7_CONTROLL_REGISTER_value ((0<<ISC71) | (0<<ISC70) | (0<<ISC61) | (1<<ISC60) | (0<<ISC51) | (1<<ISC50) | (0<<ISC41) | (1<<ISC40))
 
 /** EIMSK – External Interrupt Mask Register p.111
     |7      |6      |5      |4      |3      |2      |1      |0      |
     |INT7   |INT6   |INT5   |INT4   |INT3   |INT2   |INT1   |INT0   |
    erlauben der externen Interrupts*/
 #define ENABLE_EXTERN_INTERRUPTS_REGISTER EIMSK
-#define INT_COMP_A 4
-#define INT_COMP_B 5
-#define INT_COMP_C 6
+
+#define ENABLE_COMP_A (ENABLE_EXTERN_INTERRUPTS_REGISTER |= (1<<INT4))
+#define DISABLE_COMP_A (ENABLE_EXTERN_INTERRUPTS_REGISTER &= ~(1<<INT4))
+#define ENABLE_COMP_B (ENABLE_EXTERN_INTERRUPTS_REGISTER |= (1<<INT5))
+#define DISABLE_COMP_B (ENABLE_EXTERN_INTERRUPTS_REGISTER &= ~(1<<INT5))
+#define ENABLE_COMP_C (ENABLE_EXTERN_INTERRUPTS_REGISTER |= (1<<INT6))
+#define DISABLE_COMP_C (ENABLE_EXTERN_INTERRUPTS_REGISTER &= ~(1<<INT6))
 
 /** EIFR – External Interrupt Flag Register p.112
     |7      |6      |5      |4      |3      |2      |1      |0      |
@@ -53,6 +59,12 @@
 #define TRISTATE_OUTPUT 1
 #define TRISTATE_COMP DDRE
 #define PORT_COMP PORTE
+#define PIN_COMP PINE
+
+#define INT_COMP_A 4
+#define INT_COMP_B 5
+#define INT_COMP_C 6
+
 
 
 static void (*listenerPhaseA)(char edge);
@@ -64,30 +76,18 @@ void initComp()
     logMsg("Init comperators...");
 
     TRISTATE_COMP |= ((TRISTATE_INPUT<<INT_COMP_A) |(TRISTATE_INPUT<<INT_COMP_B) |(TRISTATE_INPUT<<INT_COMP_C)); // config as inputs
-
-    EXT_INTERRUPT_4TO7_CONTROLL_REGISTER |= (1<<0);
-    EXT_INTERRUPT_4TO7_CONTROLL_REGISTER &= ~(1<<(0+1));
-
-    EXT_INTERRUPT_4TO7_CONTROLL_REGISTER |= (1<<2);
-    EXT_INTERRUPT_4TO7_CONTROLL_REGISTER &= ~(1<<(2+1));
-
-    EXT_INTERRUPT_4TO7_CONTROLL_REGISTER |= (1<<4);
-    EXT_INTERRUPT_4TO7_CONTROLL_REGISTER &= ~(1<<(4+1));
-
-    setEnableCompA(0);
-    setEnableCompB(0);
-    setEnableCompC(0);
+    EXT_INTERRUPT_4TO7_CONTROLL_REGISTER |= EXT_INTERRUPT_4TO7_CONTROLL_REGISTER_value;
 }
 
 void setEnableCompA(char enable)
 {
     if(enable)
     {
-        ENABLE_EXTERN_INTERRUPTS_REGISTER |= (1<<INT_COMP_A);
+        ENABLE_COMP_A;
     }
     else
     {
-        ENABLE_EXTERN_INTERRUPTS_REGISTER &= ~(1<<INT_COMP_A);
+        DISABLE_COMP_A;
     }
 }
 
@@ -95,11 +95,11 @@ void setEnableCompB(char enable)
 {
     if(enable)
     {
-        ENABLE_EXTERN_INTERRUPTS_REGISTER |= (1<<INT_COMP_B);
+        ENABLE_COMP_B;
     }
     else
     {
-        ENABLE_EXTERN_INTERRUPTS_REGISTER &= ~(1<<INT_COMP_B);
+        DISABLE_COMP_B;
     }
 }
 
@@ -107,11 +107,11 @@ void setEnableCompC(char enable)
 {
     if(enable)
     {
-        ENABLE_EXTERN_INTERRUPTS_REGISTER |= (1<<INT_COMP_C);
+        ENABLE_COMP_C;
     }
     else
     {
-        ENABLE_EXTERN_INTERRUPTS_REGISTER &= ~(1<<INT_COMP_C);
+        DISABLE_COMP_C;
     }
 }
 
@@ -135,11 +135,10 @@ void registerVoltageZeroCrossingListenerPhaseC(void (*listener)(char edge))
 
 ISR (PHASE_A_ISR)
 {
-    setEnableCompA(0); // disable isr -> interrupt only on first zero crossing
-
     if(listenerPhaseA != 0)
     {
-        listenerPhaseA((PORT_COMP >> INT_COMP_A) & 1);
+        uint8_t edge = ((PIN_COMP >> INT_COMP_A) & 1);
+        listenerPhaseA(edge);
     }
 }
 
@@ -149,7 +148,7 @@ ISR (PHASE_B_ISR)
 
     if(listenerPhaseB != 0)
     {
-        listenerPhaseB((PORT_COMP >> INT_COMP_B) & 1);
+        listenerPhaseB((PIN_COMP >> INT_COMP_B) & 1);
     }
 }
 
@@ -160,6 +159,6 @@ ISR (PHASE_C_ISR)
     // phase C
     if(listenerPhaseC != 0)
     {
-        listenerPhaseC((PORT_COMP >> INT_COMP_C) & 1);
+        listenerPhaseC((PIN_COMP >> INT_COMP_C) & 1);
     }
 }

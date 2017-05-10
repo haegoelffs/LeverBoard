@@ -14,7 +14,7 @@
 #define BUFFER_FAIL     0
 #define BUFFER_SUCCESS  1
 
-#define BUFFER_SIZE 9
+#define BUFFER_SIZE 20
 
 // Stellt 1 Byte in den Ringbuffer
 //

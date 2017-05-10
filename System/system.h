@@ -28,24 +28,20 @@ void changePhaseState(uint8_t state);
 void initTimers();
 
 /** Calls the handed function after the handed time
-**/
-void startAfterMs1(uint16_t ms, void (*fn)(void));
+Parameter:
+time_ us    = time in us. max value: 2¹⁶ * 4 = 262'144us.
+fn          = callback. Called after the handed time.
+*/
 void startAfterUs(uint32_t time_us, void (*fn)(void));
 
-uint32_t getSystimeInUs();
-
-void startTimeMeasurement1(void (*timerOverflowCallback)(void));
-uint16_t getTime1();
-uint16_t stopTimeMeasurement1();
-
-void startTimeMeasurement2(void (*timerOverflowCallback)(void));
-uint16_t getTime2();
-uint16_t stopTimeMeasurement2();
+void startTimeMeasurement(void (*timerOverflowCallback)(void));
+uint8_t isTimeMeasurementRunning();
+uint16_t stopTimeMeasurement();
 
 // analog values
 void initAnalog();
 char readBatteryVoltage();
-char readPhaseCurrnet(char phase); //value between 0 and 42, where 42 stands for 42 Amp�re
+char readPhaseCurrnet(char phase); //value between 0 and 42, where 42 stands for 42 Ampére
 
 // sensor 0 = Front
 // sensor 1 = Back
@@ -56,7 +52,6 @@ char readReference2();
 char readReference3();
 char readReference4();
 
-
 // comperators
 void initComp();
 
@@ -66,9 +61,9 @@ void initComp();
         --> edge = 0: falling edge
         --> edge = 1: rising edge
 **/
-void registerVoltageZeroCrossingListenerPhaseA(void (*listener)(char), char edge);		//char edge needs to be passed as an separate argument
-void registerVoltageZeroCrossingListenerPhaseB(void (*listener)(char), char edge);		//char edge needs to be passed as an separate argument
-void registerVoltageZeroCrossingListenerPhaseC(void (*listener)(char), char edge);		//char edge needs to be passed as an separate argument
+void registerVoltageZeroCrossingListenerPhaseA(void (*listener)(char));
+void registerVoltageZeroCrossingListenerPhaseB(void (*listener)(char));
+void registerVoltageZeroCrossingListenerPhaseC(void (*listener)(char));
 
 /** Enables the comperator for the phase A.
     Input:
@@ -84,7 +79,6 @@ void initGPIOs();
 void setLEDsBatteryPower(char batteryPower);    // batteryPower = 0 --> all leds off, = 1 --> led1 on, = 2 --> led2 on ...
 void setPiezoSound(char state);                 //(state == 1) ==> piezo on,  (state == 0) ==> piezo off
 void switchPwmOnOff(char state);             //Turn PWM on (state == 1) and Turn PWM off(state == 0)
-
 
 // log
 void initUART();

@@ -1,4 +1,5 @@
-// __GPIOs
+#include <avr/io.h>
+
 #define TRISTATE_INPUT 0
 #define TRISTATE_OUTPUT 1
 

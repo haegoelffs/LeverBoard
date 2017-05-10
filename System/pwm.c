@@ -245,35 +245,39 @@ void changePhaseState(uint8_t state)
 
     switch(state)
     {
-    case 0:
-        PWM_HS_A_ON;
-        PWM_LS_C_ON;
-        break;
+        case 0:
+            PWM_HS_A_ON;
+            PWM_LS_C_ON;
+            break;
 
-    case 1:
-        PWM_HS_B_ON;
-        PWM_LS_C_ON;
-        break;
+        case 1:
+            PWM_HS_B_ON;
+            PWM_LS_C_ON;
+            break;
 
-    case 2:
-        PWM_HS_B_ON;
-        PWM_LS_A_ON;
-        break;
+        case 2:
+            PWM_HS_B_ON;
+            PWM_LS_A_ON;
+            break;
 
-    case 3:
-        PWM_HS_C_ON;
-        PWM_LS_A_ON;
-        break;
+        case 3:
+            PWM_HS_C_ON;
+            PWM_LS_A_ON;
+            break;
 
-    case 4:
-        PWM_HS_C_ON;
-        PWM_LS_B_ON;
-        break;
+        case 4:
+            PWM_HS_C_ON;
+            PWM_LS_B_ON;
+            break;
 
-    case 5:
-        PWM_HS_A_ON;
-        PWM_LS_B_ON;
-        break;
+        case 5:
+            PWM_HS_A_ON;
+            PWM_LS_B_ON;
+            break;
+
+        default:
+            logMsg("ERROR!");
+            break;
     }
 }
 
@@ -287,15 +291,8 @@ void setPWMDutyCycle(uint8_t dutyCycle)
         dutyCycle = 100;
     }
 
-    //logVar("duty cycle", dutyCycle, 20);
-    //logVar("res", RESOLUTION_PWM, 20);
-
     uint16_t temp = dutyCycle*RESOLUTION_PWM; // max.: 100*320 = 32000 = 0b0111 1101 0000 0000 --> 16Bit
-    //logVar("temp", temp, 30);
-
-    uint16_t newCompareValue = temp/((uint16_t)100); // TEMP: Wieso stimmt berechnung??????????????????????????????????????????????????????
-
-    //logVar("duty cycle", newCompareValue, 20);
+    uint16_t newCompareValue = temp/((uint16_t)100);
 
     PWM_HS_A_COMPARE_VALUE_HIGH = (char)(newCompareValue>>8);
     PWM_HS_A_COMPARE_VALUE_LOW = (char)newCompareValue;

@@ -178,6 +178,8 @@ Flags des entsprechenden Interrupts.
 #define START_AFTER_TIMER_COMPARE_ISR TIMER1_COMPA_vect
 #define SYSTIME_OVERFLOW_ISR TIMER3_OVF_vect
 
+volatile uint8_t measurementRunning = 0;
+
 void (*startAfterCallback)(void);
 void (*systimeOverflowCallback)(void);
 
@@ -248,19 +250,20 @@ void startAfterUs(uint32_t time_us, void (*fn)(void))
     }
 }
 
-/*uint32_t getSystimeInUs()
-{
-    //logUnsignedInt("dt", (uint16_t)(temp-time), 30);
-
-    //uint
-
-    return (uint32_t)(((((uint32_t)systimeHighWord)<<16) + (((uint32_t)SYSTIME_TIMER_VALUE_HIGH)<<8) + SYSTIME_TIMER_VALUE_LOW)/4);
-}*/
-
 void startTimeMeasurement(void (*timerOverflowCallback)(void))
 {
-    SYSTIME_START;
-    systimeOverflowCallback = timerOverflowCallback;
+    if(!measurementRunning)
+    {
+        SYSTIME_START;
+
+        systimeOverflowCallback = timerOverflowCallback;
+        measurementRunning = 1;
+    }
+}
+
+uint8_t isTimeMeasurementRunning()
+{
+    return measurementRunning;
 }
 
 /**
@@ -269,6 +272,9 @@ void startTimeMeasurement(void (*timerOverflowCallback)(void))
 uint16_t stopTimeMeasurement()
 {
     SYSTIME_STOP;
+
+    measurementRunning = 0;
+
     uint8_t low = SYSTIME_TIMER_VALUE_LOW;
     uint8_t high = SYSTIME_TIMER_VALUE_HIGH;
 
