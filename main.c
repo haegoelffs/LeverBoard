@@ -17,18 +17,19 @@ int main(void)
 {
     // init Hardware
     initUART();
-    initGPIOs();
+	initGPIOs();
     initAnalog();
     initPWM();
-	uint16_t delta_time;
+	
 	
 	//init variables
+	
 	char numPiezo = 0;       //number of times piezo made a noise
 	char numLed = 0;		//number of times LEDs were flashed
 	signed char new_current;
 	char duty_cycle = 0;
 	phaseState = 7;
-	delta_time = 100;
+	uint16_t delta_time = 100;
 	
 	
     // init modules
@@ -36,15 +37,20 @@ int main(void)
     //initInterface();
     initDrive();
 	
-
+	//Set Power LED
+	setPowerLED();
+	
     while(1)
     {
 		//Handle BatteryState
 		char BatteryState = getBatteryState();
 		switch(BatteryState) {
 			case 0: switchPwmOnOff(0);
-					if(numLed < 1) flashLEDs(1);
-					numLed = 1;
+					if(numLed < 1)
+					{
+						flashLEDs();
+						++numLed ;
+					}
 					numPiezo = 0;
 					setLEDsBatteryPower(0);
 					break;
@@ -79,13 +85,12 @@ int main(void)
 					else quitNoBtreakAlert();
 		}
 		
-		//get wished current + set wisched current
-		signed char new_current = give_newcurrent(void);
+		
+		//signed char new_current = give_newcurrent();
+		duty_cycle= give_new_dutycycle();
 		char actual_current = give_actualcurrent(phase_state);
-		//set duty_cycle to reach wisched current;
-		rise_sink_pwm_dutyc(new_current,actual_current,duty_cycle);
-		
-		
-		
+		duty_cycle = setPWMDutyCycle_dr(duty_cycle, actual_current);
+		//rise_sink_pwm_dutyc(new_current,actual_current,duty_cycle);
+		emergencyShutDown(actual_current);
 	}
 }
