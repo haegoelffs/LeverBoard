@@ -205,6 +205,7 @@ Flags des entsprechenden Interrupts.
 #include "logger.h"
 
 #include <stdint.h>
+#include <stdlib.h>
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
@@ -212,8 +213,6 @@ Flags des entsprechenden Interrupts.
 void initPWM()
 {
     logMsg("Init PWM...");
-
-    //PRR1 = 0;
 
     // config GPIOs
     TRISTATE_HS_PWM |= ((TRISTATE_OUTPUT<<PIN_HS_A_PWM) | (TRISTATE_OUTPUT<<PIN_HS_B_PWM) | (TRISTATE_OUTPUT<<PIN_HS_C_PWM));
@@ -232,10 +231,18 @@ void initPWM()
     PWM_LS_MAX_VALUE_LOW = (char)(RESOLUTION_PWM);
 }
 
+/** Changes the output channels for the pwm.
+    Input:
+    state = 0: A heavyside, C lowside
+    state = 1: B heavyside, C lowside
+    state = 2: B heavyside, A lowside
+    state = 3: C heavyside, A lowside
+    state = 4: C heavyside, B lowside
+    state = 5: A heavyside, B lowside
+    state > 5: power off all channels
+**/
 void changePhaseState(uint8_t state)
 {
-    //logVar("New phasestate",state,16);
-
     PWM_HS_A_OFF;
     PWM_HS_B_OFF;
     PWM_HS_C_OFF;
@@ -276,14 +283,14 @@ void changePhaseState(uint8_t state)
             break;
 
         default:
-            logMsg("ERROR!");
             break;
     }
 }
 
-/**
-    dutyCycle = 0 - 100, alles >100 entspricht 100
-*/
+/** Sets the dutycycle of the pwm.
+    Input:
+    0 <= dutyCycle <= 100 every handed value > 100 will be interpreted as 100
+ **/
 void setPWMDutyCycle(uint8_t dutyCycle)
 {
     if(dutyCycle > 100)
@@ -291,6 +298,8 @@ void setPWMDutyCycle(uint8_t dutyCycle)
         dutyCycle = 100;
     }
 
+
+    dutyCycle = abs((int16_t)dutyCycle-100);
     uint16_t temp = dutyCycle*RESOLUTION_PWM; // max.: 100*320 = 32000 = 0b0111 1101 0000 0000 --> 16Bit
     uint16_t newCompareValue = temp/((uint16_t)100);
 

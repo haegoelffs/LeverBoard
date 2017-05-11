@@ -20,7 +20,7 @@ void setPWMDutyCycle(uint8_t dutyCycle);
     state = 3: C heavyside, A lowside
     state = 4: C heavyside, B lowside
     state = 5: A heavyside, B lowside
-    state > 5: Will be ignored
+    state > 5: power off all channels
 **/
 void changePhaseState(uint8_t state);
 
@@ -34,9 +34,23 @@ fn          = callback. Called after the handed time.
 */
 void startAfterUs(uint32_t time_us, void (*fn)(void));
 
+/** Starts a new time measurement.
+resolution = 1/(16e6/64) = 4us
+max. time = 4us * 2¹⁶ = 262.2ms
+
+Input:
+timerOverflowCallback: called after the max. time
+*/
 void startTimeMeasurement(void (*timerOverflowCallback)(void));
+
+/** Returns a 1, if there is a running time measurement
+*/
 uint8_t isTimeMeasurementRunning();
-uint16_t stopTimeMeasurement();
+
+/** Stops the time measurement and returns the measured time.
+ return: measured time in us.
+*/
+uint32_t stopTimeMeasurement();
 
 // analog values
 void initAnalog();
@@ -76,10 +90,31 @@ void setEnableCompC(char enable);
 
 // gpios
 void initGPIOs();
-void setLEDsBatteryPower(char batteryPower);    // batteryPower = 0 --> all leds off, = 1 --> led1 on, = 2 --> led2 on ...
-void setPiezoSound(char state);                 //(state == 1) ==> piezo on,  (state == 0) ==> piezo off
-void switchPwmOnOff(char state);             //Turn PWM on (state == 1) and Turn PWM off(state == 0)
-void setPowerLED();                          // Turns on Power LED
+
+/** sets the 4 leds to visualize the battery power
+batteryPower = 0: All leds off
+batteryPower = 1: Led 1 on
+batteryPower = 2: Leds 1 & 2 on
+batteryPower = 3: Leds 1,2 & 3 on
+batteryPower > 3: All leds on
+*/
+void setLEDsBatteryPower(char batteryPower);
+
+/** drive piezo sound element
+state >= 1: turn piezo sound element on
+state = 0: turn piezo sound element off
+**/
+void setPiezoSound(char state);
+
+/** enable bridge driver
+state >= 1: turn PWM on
+state = 0: turn PWM off
+**/
+void switchPwmOnOff(char state);
+
+/** Turns on Power LED
+**/
+void setPowerLED();
 
 // log
 void initUART();

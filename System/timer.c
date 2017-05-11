@@ -250,6 +250,14 @@ void startAfterUs(uint32_t time_us, void (*fn)(void))
     }
 }
 
+
+/** Starts a new time measurement.
+resolution = 1/(16e6/64) = 4us
+max. time = 4us * 2¹⁶ = 262.2ms
+
+Input:
+timerOverflowCallback: called after the max. time
+*/
 void startTimeMeasurement(void (*timerOverflowCallback)(void))
 {
     if(!measurementRunning)
@@ -261,15 +269,17 @@ void startTimeMeasurement(void (*timerOverflowCallback)(void))
     }
 }
 
+/** Returns a 1, if there is a running time measurement
+*/
 uint8_t isTimeMeasurementRunning()
 {
     return measurementRunning;
 }
 
-/**
- return: measured time in us. Max. value = 65.536ms
+/** Stops the time measurement and returns the measured time.
+ return: measured time in us.
 */
-uint16_t stopTimeMeasurement()
+uint32_t stopTimeMeasurement()
 {
     SYSTIME_STOP;
 

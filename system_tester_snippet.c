@@ -10,6 +10,10 @@
 
 #define TIMING ((uint8_t)10)
 
+#define SPEED_UP_STEP 1000
+#define SPEED_UP_START_T60DEGREES 262144 // max. value function "startAfter()"
+#define SPEED_UP_END_T60DEGREES 2040
+
 /** calculation:
 V_max = 30km/h = 8.3m/s
 V_min = 3.6km/h = 1m/s
@@ -38,17 +42,20 @@ Range T_el60deg: 240us ... 2'040us
 volatile char phasestate = 0;
 volatile uint16_t time60deg = 0;
 
-// callbacks
-void timerCall(void);
-
+// functions
 void zeroCrossingListenerPhaseA(char edge);
 void zeroCrossingListenerPhaseB(char edge);
 void zeroCrossingListenerPhaseC(char edge);
 
 void timeMeassurementOverflow(void);
 
+void speedUpFrequenz(void);
+void holdFrequenz(void);
+void switchPhase(void);
+
 int main(void)
 {
+    // initialization-------------------------------------------------------------------
     initUART();
     writeNewLine();
     writeNewLine();
@@ -65,18 +72,12 @@ int main(void)
     registerVoltageZeroCrossingListenerPhaseC(&zeroCrossingListenerPhaseC);
 
     initPWM();
-    writeNewLine();
-    writeNewLine();
 
-    setPWMDutyCycle(50);
-    changePhaseState(phasestate);
+    setPWMDutyCycle(20);
 
+    setPWMDutyCycle(80);
 
-    // f_motor = 5Hz
-    // i_motor = 7
-    // T_60deg = 1/(i_motor*f_motor) = 28571us*/
-
-    startAfterUs(14000/2, &timerCall);
+    setPWMDutyCycle(120);
 
     while(1)
     {
@@ -86,7 +87,7 @@ int main(void)
     return 0;
 }
 
-void timerCall(void)
+void switchPhase(void)
 {
     phasestate = (phasestate+1)%6;
     changePhaseState(phasestate);
@@ -121,8 +122,30 @@ void timerCall(void)
         setEnableCompC(1);
         break;
     }
+}
 
-    startAfterUs(14000, &timerCall);
+void speedUpFrequenz(void)
+{
+    switchPhase();
+
+    time60deg = time60deg - SPEED_UP_STEP;
+
+    if(time60deg < SPEED_UP_END_T60DEGREES)
+    {
+        startAfterUs(time60deg, &speedUpFrequenz);
+    }
+    else
+    {
+        startAfterUs(time60deg, &holdFrequenz);
+    }
+}
+
+void holdFrequenz(void)
+{
+    phasestate = (phasestate+1)%6;
+    changePhaseState(phasestate);
+
+    startAfterUs(time60deg, &holdFrequenz);
 }
 
 void zeroCrossingListenerPhaseA(char edge)

@@ -171,14 +171,29 @@ Wenn = 1, digitaler Buffer zu ADC Pin (ADC15:8) disabled*/
 #include <avr/interrupt.h>
 
 // variables
-typedef enum { no_convertion, current_s01_convertion, current_s02_convertion, hall_sensor_nose_convertion,  hall_sensor_tail_convertion} State;
-State state = no_convertion;
+typedef enum {
+            no_conv,
+            current_s01_conv,
+            current_s02_conv,
+            hall_sensor_nose_conv,
+            hall_sensor_tail_conv,
+            reference1_conv,
+            reference2_conv,
+            reference3_conv,
+            reference4_conv
+            } State;
+State state = no_conv;
 
-char lastS01Current = 0;
-char lastS02Current = 0;
+int8_t lastS01Current = 0;
+int8_t lastS02Current = 0;
 
-char lastHallSensorNose = 0;
-char lastHallSensorTail = 0;
+uint8_t lastHallSensorNose = 0;
+uint8_t lastHallSensorTail = 0;
+
+uint8_t lastReference1 = 0;
+uint8_t lastReference2 = 0;
+uint8_t lastReference3 = 0;
+uint8_t lastReference4 = 0;
 
 void initAnalog()
 {
@@ -188,33 +203,114 @@ void initAnalog()
     ADC_8TO15_DIGITAL_IO_DISABLE_REGISTER |= ADC_8TO15_DIGITAL_IO_DISABLE_REGISTER_value;
 }
 
-char startPhaseCurrentMeasurement()
+int8_t startMeasurePhaseCurrents(void)
 {
-    if(state == no_convertion)
+    if(state == no_conv)
     {
-        state = current_s01_convertion;
+        state = current_s01_conv;
+
         ADC_SELECT_CURRENT_S01;
         ADC_START;
+
+        return 0;
+    }
+
+    return -1;
+}
+
+void measurePhaseCurrents(void)
+{
+    switch(state)
+    {
+        case current_s01_conv:
+            state = current_s02_conv;
+
+            lastS01Current = ADC_DATA;
+
+            ADC_SELECT_CURRENT_S02;
+            ADC_START;
+        break;
+
+        case current_s02_conv:
+            state = no_conv;
+
+            lastS02Current = ADC_DATA;
+        break;
     }
 }
 
-char startHallSensorsMeasurement()
+void startMeasureHallSensors(void)
 {
-    if(state == no_convertion)
+    if(state == no_conv)
     {
-        state = hall_sensor_nose_convertion;
+        state = hall_sensor_nose_conv;
+
         ADC_SELECT_HALL_NOSE;
         ADC_START;
+
+        return 0;
+    }
+
+    return -1;
+}
+
+void measureHallSensors(void)
+{
+    switch(state)
+    {
+        case hall_sensor_nose_conv:
+            state = hall_sensor_tail_conv;
+
+            lastS01Current = ADC_DATA;
+
+            ADC_SELECT_HALL_TAIL;
+            ADC_START;
+        break;
+
+        case hall_sensor_tail_conv:
+            state = no_conv;
+
+            lastS02Current = ADC_DATA;
+
+            ADC_SELECT_CURRENT_S01;
+            ADC_START;
+        break;
     }
 }
 
-void readPhaseCurrnet()
-
-char readBatteryVoltage()
+void startMeasureReferences(void)
 {
 
-}
+void measureReferences(void)
+{
+    switch(state)
+    {
+        case no_conv:
+            state = hall_sensor_nose_conv;
 
+            ADC_SELECT_HALL_NOSE;
+            ADC_START;
+        break;
+
+        case hall_sensor_nose_conv:
+            state = hall_sensor_tail_conv;
+
+            lastS01Current = ADC_DATA;
+
+            ADC_SELECT_HALL_TAIL;
+            ADC_START;
+        break;
+
+        case hall_sensor_tail_conv:
+            state = no_conv;
+
+            lastS02Current = ADC_DATA;
+
+            ADC_SELECT_CURRENT_S01;
+            ADC_START;
+        break;
+    }
+}
 
 
 // sensor 0 = Front
@@ -241,24 +337,8 @@ char readReference4()
 
 ISR (CONVERSION_COMPLETE_ISR)
 {
-    switch(state)
-    {
-        case current_s01_convertion:
-            lastS01Current = ADC_DATA;
-            state = current_s02_convertion;
-            startConversion();
-            break;
-
-        case current_s02_convertion:
-            lastS02Current = ADC_DATA;
-            state = no_convertion;
-            break;
-
-        case hall_sensor_nose_convertion:
-            lastHallSensorNose = ADC_DATA;
-            state = hall
-
-    }
+    measurePhaseCurrents();
+    measureHallSensors();
 }
 
 
