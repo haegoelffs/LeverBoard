@@ -116,6 +116,10 @@ void switchPwmOnOff(char state);
 **/
 void setPowerLED();
 
+// systime
+void initSystime();
+uint16_t getSystimeMs();
+
 // log
 void initUART();
 void transmitString(char *msg);

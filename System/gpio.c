@@ -102,7 +102,7 @@ void setPowerLED()
     PORT_POWER_LED |= (1<<PIN_POWER_LED);
 }
 
-/** drive piezo sound element
+/** Drive piezo sound element
 state >= 1: turn piezo sound element on
 state = 0: turn piezo sound element off
 **/

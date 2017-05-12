@@ -9,7 +9,6 @@
 
 #include "ringbuffer.h"
 
-
 struct Buffer
 {
     uint16_t data[BUFFER_SIZE];

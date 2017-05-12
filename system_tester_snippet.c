@@ -10,7 +10,7 @@
 
 #define TIMING ((uint8_t)10)
 
-#define SPEED_UP_STEP 1000
+#define SPEED_UP_STEP 100000
 #define SPEED_UP_START_T60DEGREES 262144 // max. value function "startAfter()"
 #define SPEED_UP_END_T60DEGREES 2040
 
@@ -73,11 +73,11 @@ int main(void)
 
     initPWM();
 
-    setPWMDutyCycle(20);
+    // speed up--------------------------------------------------------------------------
+    setPWMDutyCycle(50);
 
-    setPWMDutyCycle(80);
-
-    setPWMDutyCycle(120);
+    time60deg = SPEED_UP_END_T60DEGREES;
+    holdFrequenz();
 
     while(1)
     {
@@ -142,8 +142,7 @@ void speedUpFrequenz(void)
 
 void holdFrequenz(void)
 {
-    phasestate = (phasestate+1)%6;
-    changePhaseState(phasestate);
+    switchPhase();
 
     startAfterUs(time60deg, &holdFrequenz);
 }
@@ -168,6 +167,7 @@ void zeroCrossingListenerPhaseA(char edge)
     // Rechnung grösster Wert: time60deg*30 = 61.2e3 --> 16bit reicht
 
     uint16_t temp = time60deg*(30-TIMING)/60;
+    //logMsg("a");
     //startAfterUs(temp, &timerCall);
 }
 
@@ -185,7 +185,7 @@ void zeroCrossingListenerPhaseB(char edge)
     }
 
     uint16_t temp = time60deg*(30-TIMING)/60;
-
+    //logMsg("b");
     //startAfterUs(temp, &timerCall);
 }
 
@@ -203,6 +203,7 @@ void zeroCrossingListenerPhaseC(char edge)
     }
 
     uint16_t temp = time60deg*(30-TIMING)/60;
+    //logMsg("c");
     //startAfterUs(temp, &timerCall);
 }
 

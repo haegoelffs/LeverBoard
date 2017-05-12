@@ -117,19 +117,19 @@ void setEnableCompC(char enable)
 
 void registerVoltageZeroCrossingListenerPhaseA(void (*listener)(char edge))
 {
-    logMsg("Register zero crossing listener phase A");
+    //logMsg("Register zero crossing listener phase A");
     listenerPhaseA = listener;
 }
 
 void registerVoltageZeroCrossingListenerPhaseB(void (*listener)(char edge))
 {
-    logMsg("Register zero crossing listener phase B");
+    //logMsg("Register zero crossing listener phase B");
     listenerPhaseB = listener;
 }
 
 void registerVoltageZeroCrossingListenerPhaseC(void (*listener)(char edge))
 {
-    logMsg("Register zero crossing listener phase C");
+    //logMsg("Register zero crossing listener phase C");
     listenerPhaseC = listener;
 }
 

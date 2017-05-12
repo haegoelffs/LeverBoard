@@ -13,7 +13,7 @@ Start after callback:
         - Timermax
         4us * 2¹⁶ = 262.2ms
 
-Systime:
+Time measurement:
     Prescaler: 1/8
         1/(16e6/8) = 500ns
         - Zeitbereich 16bit:
@@ -30,6 +30,14 @@ Systime:
         4us * 2²⁴ = 67s
         - Zeitbereich 32bit
         4us * 2³² = 17179.9s = 286.3min = 4.8h
+
+Systime:
+    Prescaler: 1/64
+        1/(16e6/1024) = 64us
+        - Zeitbereich:
+        64us * 2⁸ = 16.384ms
+        64us * 2¹⁶ = 4.194s
+        64us * 2³² = 274'877.9s = 4'581.3min = 76h
 */
 
 

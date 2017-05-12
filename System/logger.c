@@ -62,10 +62,26 @@ void logVar(char *name, int var, char stringLenght)
     writeNewLine();
 }
 
-void logUnsignedInt(char *name, uint32_t var, char stringLenght)
+void logNamedUnsignedInt(char *name, uint16_t var, char stringLenght)
 {
     char str[stringLenght];
     sprintf(str, "%s:%u", name, var);
+    transmitString(str);
+    writeNewLine();
+}
+
+void logUnsignedInt(uint16_t var, char stringLenght)
+{
+    char str[stringLenght];
+    sprintf(str, "%u", var);
+    transmitString(str);
+    writeNewLine();
+}
+
+void logSignedInt(char *name, int16_t var, char stringLenght)
+{
+    char str[stringLenght];
+    sprintf(str, "%s:%i", name, var);
     transmitString(str);
     writeNewLine();
 }
