@@ -88,6 +88,7 @@ ADTS2:0: ADC Auto Trigger Source
 Quelle für Auto-Trigger wählen.
 Wenn ADATE (in ADCSRA) = 0, haben Einstellungen keinen Effekt.
 Free Running Mode wird hier eingestellt (Trigger = Interrupt von erfolgreicher ADC Wandlung)*/
+#define ADC_CONTROL_B ADCSRB
 
 /** ADCSRA – ADC Control and Status Register A
 |7      |6      |5      |4      |3      |2      |1      |0      |
@@ -119,9 +120,11 @@ ADPS2=1 ADPS1=1 ADPS0=0 : clk/64
 ADPS2=1 ADPS1=1 ADPS0=1 : clk/128
 */
 #define ADC_CONTROL_A ADCSRA
-#define ADC_CONTROL_A_value ((1<<ADEN) | (0<<ADSC) | (0<<ADATE) | (0<<ADIF) | (1<<ADIE) | (1<<ADPS2) | (1<<ADPS1) | (0<<ADPS0))
+#define ADC_CONTROL_A_value ((1<<ADEN) | (0<<ADSC) | (0<<ADATE) | (0<<ADIF) | (0<<ADIE) | (1<<ADPS2) | (1<<ADPS1) | (0<<ADPS0))
 
 #define ADC_START (ADC_CONTROL_A |= (1<<ADSC))
+#define ADC_IS_FINISHED (ADC_CONTROL_A & (1<<ADIF))
+#define ADC_RESET_FINISHED_FLAG (ADC_CONTROL_A &= ~(1<<ADIF))
 
 /** ADCL and ADCH – The ADC Data Register
 rechts ausgerichtet
@@ -160,7 +163,7 @@ Wenn = 1, digitaler Buffer zu ADC Pin (ADC15:8) disabled*/
 #define ADC_8TO15_DIGITAL_IO_DISABLE_REGISTER_value ((1<<ADC15D) | (1<<ADC14D) | (1<<ADC13D) | (1<<ADC12D) | (1<<ADC11D) | (1<<ADC10D) | (1<<ADC9D) | (1<<ADC8D))
 
 // Interrupts vectors
-#define CONVERSION_COMPLETE_ISR ADC_vect
+//#define CONVERSION_COMPLETE_ISR ADC_vect
 
 // includes
 #include "system.h"
@@ -203,6 +206,31 @@ void initAnalog()
     ADC_8TO15_DIGITAL_IO_DISABLE_REGISTER |= ADC_8TO15_DIGITAL_IO_DISABLE_REGISTER_value;
 }
 
+// sensor 0 = Front
+// sensor 1 = Back
+char readInterfaceSensorsVoltageBLOCKING(char sensor)
+{
+    switch(sensor)
+    {
+        case 0:
+        ADC_SELECT_HALL_NOSE;
+        break;
+
+        case 1:
+        ADC_SELECT_HALL_TAIL;
+        break;
+    }
+
+    ADC_START;
+
+    while(!ADC_IS_FINISHED)
+    {}
+    ADC_RESET_FINISHED_FLAG;
+
+    return ADC_DATA;
+}
+
+/*
 int8_t startMeasurePhaseCurrents(void)
 {
     if(state == no_conv)
@@ -280,6 +308,7 @@ void measureHallSensors(void)
 
 void startMeasureReferences(void)
 {
+}
 
 void measureReferences(void)
 {
@@ -339,6 +368,6 @@ ISR (CONVERSION_COMPLETE_ISR)
 {
     measurePhaseCurrents();
     measureHallSensors();
-}
+}*/
 
 

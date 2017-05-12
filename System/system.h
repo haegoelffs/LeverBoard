@@ -61,6 +61,8 @@ char readPhaseCurrnet(char phase); //value between 0 and 42, where 42 stands for
 // sensor 1 = Back
 char readInterfaceSensorsVoltage(char sensor);
 
+char readInterfaceSensorsVoltageBLOCKING(char sensor);
+
 char readReference1();
 char readReference2();
 char readReference3();
