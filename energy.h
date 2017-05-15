@@ -9,6 +9,6 @@ version: 0.1
 
 //void initEnergy();
 char getBatteryState();  //returns a char from from 0 to 4 (1 is very low voltage (0 turns off, 1 piezo, 4 no charging)
-void emergencyShutDown(char current);    //Shuts the Pwm off if current > 47 Ampére
+void emergencyShutDown(char current);    //Shuts the Pwm off if current > 47 Ampére and turns on piezo
 
 #endif // ENERGY_H_INCLUDED

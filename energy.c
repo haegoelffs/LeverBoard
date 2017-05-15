@@ -6,13 +6,6 @@ version: 0.1
 #include "energy.h"
 #include <avr/io.h>
 
-/*
-void initEnergy()
-{
-return;
-};*/
-
-//Turns Mosfets off if current is higher than 47 Ampére and turns on Piezzo
 void emergencyShutDown(char current)
 {
 	if(current > 47)
@@ -24,23 +17,23 @@ void emergencyShutDown(char current)
 
 char getBatteryState()
 {
-	char voltage = readBatteryVoltage();
-	if(voltage <= 21) 
+	char voltage = readBatteryVoltageBlocking();
+	if(voltage <= 90)     //21V // 1.75
 	{
 		return 0;
 	}
-	else if(voltage <= 220) //22V
+	else if(voltage <= 94) //22V //1.833333
 	{
 		 return 1;		
 	}
-	else if (voltage <= 225) //22.5V
+	else if (voltage <= 96) //22.5V //1.87 V
 	{
 		return 2;
 	}
-	else if (voltage < 250) 
+	else if (voltage < 104) 
 	{
-		return 3;       //24.5 V
+		return 3;       //24.5 V // 2.041666
 	}
-	else return 4;	    //bigger/equal  25 V*/
+	else return 4;	    //smaller/equal  25 V //2.08 V
 
 }

@@ -11,39 +11,51 @@ version: 0.1
 #include "system.h"
 #include "interface.h"
 #include "energy.h"
+#define EXTERN
 #include "global.h"     //Global variables
+#include "logger.h"
+#include <avr/interrupt.h>
+#include <util/delay.h>
+
+
+//Global Variables
+char phaseState = 1;
+uint16_t delta_time = 0;
+char enable = 1;
 
 int main(void)
-{
-    // init Hardware
-    initUART();
+{   
 	initGPIOs();
-    initAnalog();
-    initPWM();
-	
-	
+
+
 	//init variables
 	
-	char numPiezo = 0;       //number of times piezo made a noise
-	char numLed = 0;		//number of times LEDs were flashed
-	signed char new_current;
+	char numPiezo = 0;				//number of times piezo made a noise
+	char numLed = 0;				//number of times LEDs were flashed
+	//signed char new_current;		
 	char duty_cycle = 0;
-	phaseState = 7;
-	uint16_t delta_time = 100;
+	int tempo = 0;				//For forcing;			
+	char actual_current;
 	
-	
-    // init modules
-    //initEnergy();
-    //initInterface();
+	// init modules and Hardware
+							
+	//setPowerLED();		//Set Power LED
+	initUART();
+	initAnalog();
+	changePhaseState(phaseState);
+	initPWM();
+	initComp();
+	sei();					//enable interrupts
+	initTimers();		
     initDrive();
-	
-	//Set Power LED
-	setPowerLED();
+
 	
     while(1)
     {
+		
 		//Handle BatteryState
 		char BatteryState = getBatteryState();
+		logUnsignedInt("BatteryState",BatteryState,30);
 		switch(BatteryState) {
 			case 0: switchPwmOnOff(0);
 					if(numLed < 1)
@@ -84,13 +96,12 @@ int main(void)
 					}
 					else quitNoBtreakAlert();
 		}
-		
-		
-		//signed char new_current = give_newcurrent();
-		duty_cycle= give_new_dutycycle();
-		char actual_current = give_actualcurrent(phase_state);
-		duty_cycle = setPWMDutyCycle_dr(duty_cycle, actual_current);
-		//rise_sink_pwm_dutyc(new_current,actual_current,duty_cycle);
 		emergencyShutDown(actual_current);
+		actual_current = give_actualcurrent(phaseState);
+		char duty_cycle_prov = give_new_dutycycle();
+		duty_cycle = setPWMDutyCycle_dr(duty_cycle_prov, actual_current);
+	
+		
 	}
 }
+		
