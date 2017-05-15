@@ -3,16 +3,13 @@
 #include <avr/interrupt.h>
 #include <avr/delay.h>
 #include <stdlib.h>
+#include <stdint.h>
 
 #include "System/system.h"
 #include "System/logger.h"
-#include <stdint.h>
+#include "System/loggerISR.h"
 
-#define TIMING ((uint8_t)10)
 
-#define SPEED_UP_STEP 100000
-#define SPEED_UP_START_T60DEGREES 262144 // max. value function "startAfter()"
-#define SPEED_UP_END_T60DEGREES 2040
 
 /** calculation:
 V_max = 30km/h = 8.3m/s
@@ -39,19 +36,13 @@ Range T_el60deg: 240us ... 2'040us
 
 */
 
-volatile char phasestate = 0;
-volatile uint16_t time60deg = 0;
-
 // functions
 void zeroCrossingListenerPhaseA(char edge);
 void zeroCrossingListenerPhaseB(char edge);
 void zeroCrossingListenerPhaseC(char edge);
 
-void timeMeassurementOverflow(void);
+void proceedlater(void);
 
-void speedUpFrequenz(void);
-void holdFrequenz(void);
-void switchPhase(void);
 
 int main(void)
 {
@@ -65,149 +56,34 @@ int main(void)
     sei();
 
     initTimers();
-    initComp();
+    initAnalog();
 
-    registerVoltageZeroCrossingListenerPhaseA(&zeroCrossingListenerPhaseA);
-    registerVoltageZeroCrossingListenerPhaseB(&zeroCrossingListenerPhaseB);
-    registerVoltageZeroCrossingListenerPhaseC(&zeroCrossingListenerPhaseC);
+    //char test = readInterfaceSensorsVoltageBLOCKING(0);
 
-    initPWM();
+    startAfterUs(10000, &proceedlater);
+    logMsgBuffered("Test");
 
-    // speed up--------------------------------------------------------------------------
-    setPWMDutyCycle(50);
 
-    time60deg = SPEED_UP_END_T60DEGREES;
-    holdFrequenz();
+    writeBuffered();
+    logMsgBuffered("Test2");
+    logMsgBuffered("Test2");
+    logMsgBuffered("Test2");
+    logMsgBuffered("Test2");
+    logMsg("write buffered");
+    //writeBuffered();
+
 
     while(1)
     {
-        //writeBuffered();
+        _delay_ms(100);
+        writeBuffered();
     }
 
     return 0;
 }
 
-void switchPhase(void)
+void proceedlater(void)
 {
-    phasestate = (phasestate+1)%6;
-    changePhaseState(phasestate);
-
-    setEnableCompA(0);
-    setEnableCompB(0);
-    setEnableCompC(0);
-
-    switch(phasestate)
-    {
-        case 0:
-        setEnableCompB(1);
-        break;
-
-        case 1:
-        setEnableCompA(1);
-        break;
-
-        case 2:
-        setEnableCompC(1);
-        break;
-
-        case 3:
-        setEnableCompB(1);
-        break;
-
-        case 4:
-        setEnableCompA(1);
-        break;
-
-        case 5:
-        setEnableCompC(1);
-        break;
-    }
-}
-
-void speedUpFrequenz(void)
-{
-    switchPhase();
-
-    time60deg = time60deg - SPEED_UP_STEP;
-
-    if(time60deg < SPEED_UP_END_T60DEGREES)
-    {
-        startAfterUs(time60deg, &speedUpFrequenz);
-    }
-    else
-    {
-        startAfterUs(time60deg, &holdFrequenz);
-    }
-}
-
-void holdFrequenz(void)
-{
-    switchPhase();
-
-    startAfterUs(time60deg, &holdFrequenz);
-}
-
-void zeroCrossingListenerPhaseA(char edge)
-{
-    // measure current frequenzy
-    if(isTimeMeasurementRunning())
-    {
-        time60deg = stopTimeMeasurement();
-    }
-    else
-    {
-        startTimeMeasurement(&timeMeassurementOverflow);
-    }
-
-    // switch phase
-    // Range T_el60deg: 240us ... 2'040us
-
-    // t_next_phase = time60deg/60*(30-TIMING)
-    // Range t_next_phase: 4 ... 1.02e3
-    // Rechnung grösster Wert: time60deg*30 = 61.2e3 --> 16bit reicht
-
-    uint16_t temp = time60deg*(30-TIMING)/60;
-    //logMsg("a");
-    //startAfterUs(temp, &timerCall);
-}
-
-void zeroCrossingListenerPhaseB(char edge)
-{
-    setEnableCompB(0); // disable isr -> interrupt only on first zero crossing
-
-    if(isTimeMeasurementRunning())
-    {
-        time60deg = stopTimeMeasurement();
-    }
-    else
-    {
-        startTimeMeasurement(&timeMeassurementOverflow);
-    }
-
-    uint16_t temp = time60deg*(30-TIMING)/60;
-    //logMsg("b");
-    //startAfterUs(temp, &timerCall);
-}
-
-void zeroCrossingListenerPhaseC(char edge)
-{
-    setEnableCompC(0); // disable isr -> interrupt only on first zero crossing
-
-    if(isTimeMeasurementRunning())
-    {
-        time60deg = stopTimeMeasurement();
-    }
-    else
-    {
-        startTimeMeasurement(&timeMeassurementOverflow);
-    }
-
-    uint16_t temp = time60deg*(30-TIMING)/60;
-    //logMsg("c");
-    //startAfterUs(temp, &timerCall);
-}
-
-void timeMeassurementOverflow(void)
-{
-
+    logMsgBuffered("proceed later test\r\n");
+    startAfterUs(100000, &proceedlater);
 }

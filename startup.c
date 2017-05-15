@@ -5,10 +5,11 @@
 
 #define GRADIENT_PERCENT_SPEED_UP ((uint8_t)2)
 #define TIME_60DEG_SPEED_UP_START ((uint16_t)11000)
-#define TIME_60DEG_SPEED_UP_END 2040
+//#define TIME_60DEG_SPEED_UP_END 2040
+#define TIME_60DEG_SPEED_UP_END 1800
 
-extern uint8_t phasestate;
-extern uint16_t time60deg;
+uint8_t phasestate;
+uint16_t time60deg;
 
 static volatile uint32_t timeRamp = 0;
 static volatile uint8_t cnt = 0;

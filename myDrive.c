@@ -4,9 +4,11 @@
 #include <avr/delay.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <util/delay.h>
 
 #include "System/system.h"
 #include "System/logger.h"
+#include "System/loggerISR.h"
 #include "startup.h"
 #include "synchronize.h"
 
@@ -22,8 +24,7 @@ int main(void)
     // initialization-------------------------------------------------------------------
     initUART();
     writeNewLine();
-    writeNewLine();
-    logMsg("__Starting system.c tester__");
+    logMsg("__Starting DRIVE tester__");
 
     logMsg("Enable global interrupts...");
     sei();
@@ -37,6 +38,8 @@ int main(void)
 
     while(1)
     {
+        _delay_ms(10);
+        writeBuffered();
     }
 
     return 0;

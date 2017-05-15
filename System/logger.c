@@ -10,7 +10,6 @@
 #include <avr/interrupt.h>
 #include <stdlib.h>
 
-#include "ringbuffer.h"
 #include "system.h"
 
 void writeNewLine()
@@ -19,32 +18,7 @@ void writeNewLine()
     transmitChar('\n'); // new line
 }
 
-void logMsgInBuffer(char *msg)
-{
-    bufferIn((uint16_t)msg); //store address of string
-}
 
-void writeBuffered()
-{
-    volatile unsigned char logsAvailable = 1;
-
-    while(logsAvailable)
-    {
-        uint16_t* pToAdressMsg;
-
-        logsAvailable = bufferOut(pToAdressMsg); //get address of string
-
-        if(logsAvailable)
-        {
-            transmitString((char*)*pToAdressMsg);
-            writeNewLine();
-        }
-        else
-        {
-            return;
-        }
-    }
-}
 
 void logMsg(char* msg)
 {
@@ -78,7 +52,23 @@ void logUnsignedInt(uint16_t var, char stringLenght)
     writeNewLine();
 }
 
-void logSignedInt(char *name, int16_t var, char stringLenght)
+void logSignedInt(int16_t var, char stringLenght)
+{
+    char str[stringLenght];
+    sprintf(str, "%i", var);
+    transmitString(str);
+    writeNewLine();
+}
+
+void logSignedIntLine(int16_t var1, int16_t var2, int16_t var3, int16_t var4, char stringLenght)
+{
+    char str[stringLenght];
+    sprintf(str, "%i;%i;%i;%i", var1, var2, var3, var4);
+    transmitString(str);
+    writeNewLine();
+}
+
+void logNamedSignedInt(char *name, int16_t var, char stringLenght)
 {
     char str[stringLenght];
     sprintf(str, "%s:%i", name, var);

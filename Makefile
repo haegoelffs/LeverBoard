@@ -3,8 +3,12 @@
 
 # PROJECT = $(shell basename $(shell pwd))
 PROJECT = myDrive
+#PROJECT = system_tester_snippet
+#PROJECT = drive_tester_snippet
 
-OBJS = $(PROJECT).o System/ringbuffer.o System/logger.o System/timer.o System/uart.o System/pwm.o System/ext_comperator.o System/systime.o startup.o synchronize2.o
+OBJS = $(PROJECT).o System/ringbuffer.o System/logger.o System/loggerISR.o System/timer.o System/uart.o System/pwm.o System/adc.o System/ext_comperator.o System/systime.o startup.o run2.o
+#OBJS = $(PROJECT).o System/ringbuffer.o System/logger.o System/timer.o System/uart.o System/pwm.o System/ext_comperator.o System/systime.o startup.o measureZeroCrossing.o
+#OBJS = $(PROJECT).o System/ringbuffer.o System/logger.o System/timer.o System/uart.o System/pwm.o System/ext_comperator.o System/systime.o System/adc.o System/loggerISR.o
 
 CC = avr-gcc
 
@@ -17,7 +21,8 @@ CFLAGS = -mmcu=$(MCU) -Wall -O2 -DF_CPU=16000000UL -gdwarf-2
 
 all: $(PROJECT).elf flash
 
-# normal linker rule for C project
+# normal linker rule for C projectmperator.o System/systime.o startup.o run2.o
+#OBJS = $(PROJECT).o System/ringbuffer.o System/logger.o System/timer.o System/uart.o System/pwm.o System/ext_comperator.o System/systime.o startup.o measureZeroCrossing.o
 $(PROJECT).elf: $(OBJS)
 	$(CC) $(CFLAGS) $+ -o $@
 

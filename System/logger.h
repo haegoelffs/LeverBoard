@@ -1,15 +1,15 @@
 #ifndef LOGGER_H_INCLUDED
 #define LOGGER_H_INCLUDED
 
-// ISR functions
-void logMsgInBuffer(char *msg);
-void writeBuffered();
+#define LOG_ERROR
+#define LOG_INFO
 
-// normal functions
 void logMsg(char *msg);
 void logVar(char *name, int var, char stringLenght);
 void logNamedUnsignedInt(char *name, uint16_t var, char stringLenght);
 void logUnsignedInt(uint16_t var, char stringLenght);
-void logSignedInt(char *name, int16_t var, char stringLenght);
+void logSignedInt(int16_t var, char stringLenght);
+void logNamedSignedInt(char *name, int16_t var, char stringLenght);
+
 void writeNewLine();
 #endif // LOGGER_H_INCLUDED

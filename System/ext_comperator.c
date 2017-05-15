@@ -46,6 +46,12 @@
     |INTF7  |INTF6  |INTF5  |INTF4  |INTF3  |INTF2  |INTF1  |INTF0  |
    Wenn Interrupt erfolgt, wird entsprechendes Flag auf 1 gesetzt.
    Nach Interruptrountine durch HW zurückgesetzt.*/
+#define EXTERN_INTERRUPTS_FLAGS EIFR
+
+// ...the flag can be cleared by writing a logical one to it. p.112
+#define CLEAR_COMP_A_FLAG (EXTERN_INTERRUPTS_FLAGS |= (1<<INT4))
+#define CLEAR_COMP_B_FLAG (EXTERN_INTERRUPTS_FLAGS |= (1<<INT5))
+#define CLEAR_COMP_C_FLAG (EXTERN_INTERRUPTS_FLAGS |= (1<<INT6))
 
 /** Interrupt vectors
 */
@@ -75,14 +81,15 @@ void initComp()
 {
     logMsg("Init comperators...");
 
-    TRISTATE_COMP |= ((TRISTATE_INPUT<<INT_COMP_A) |(TRISTATE_INPUT<<INT_COMP_B) |(TRISTATE_INPUT<<INT_COMP_C)); // config as inputs
     EXT_INTERRUPT_4TO7_CONTROLL_REGISTER |= EXT_INTERRUPT_4TO7_CONTROLL_REGISTER_value;
+    TRISTATE_COMP |= ((TRISTATE_INPUT<<INT_COMP_A) |(TRISTATE_INPUT<<INT_COMP_B) |(TRISTATE_INPUT<<INT_COMP_C)); // config as inputs
 }
 
 void setEnableCompA(char enable)
 {
     if(enable)
     {
+        CLEAR_COMP_A_FLAG;
         ENABLE_COMP_A;
     }
     else
@@ -95,6 +102,7 @@ void setEnableCompB(char enable)
 {
     if(enable)
     {
+        CLEAR_COMP_B_FLAG;
         ENABLE_COMP_B;
     }
     else
@@ -107,6 +115,7 @@ void setEnableCompC(char enable)
 {
     if(enable)
     {
+        CLEAR_COMP_C_FLAG;
         ENABLE_COMP_C;
     }
     else
@@ -144,8 +153,6 @@ ISR (PHASE_A_ISR)
 
 ISR (PHASE_B_ISR)
 {
-    setEnableCompB(0); // disable isr -> interrupt only on first zero crossing
-
     if(listenerPhaseB != 0)
     {
         listenerPhaseB((PIN_COMP >> INT_COMP_B) & 1);
@@ -154,9 +161,6 @@ ISR (PHASE_B_ISR)
 
 ISR (PHASE_C_ISR)
 {
-    setEnableCompC(0); // disable isr -> interrupt only on first zero crossing
-
-    // phase C
     if(listenerPhaseC != 0)
     {
         listenerPhaseC((PIN_COMP >> INT_COMP_C) & 1);

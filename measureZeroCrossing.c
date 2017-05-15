@@ -17,9 +17,9 @@
  static uint8_t phasestate;
  static uint16_t time60deg;
  static uint16_t measuredTime;
- static uint16_t deltaTime;
+ static uint16_t targetTime;
 
- uint16_t measureValues[NR_MEASURE_POINTS];
+ uint16_t measuredTimes[NR_MEASURE_POINTS];
  volatile uint8_t measureNr = 0;
 
 // functions
@@ -135,14 +135,7 @@ void zeroCrossingListenerPhaseA(char edge)
     }
     #endif // MEASURE_TIME_60DEG
 
-    //uint16_t temp = time60deg*((uint8_t)30-TIMING)/(uint8_t)60;
-    /*
-    time60deg_max = 2100
-    TIMING_min = 0
-    --> 2100*30 = 63000 = 0b1111'0110'0001'1000 --> 16bit ok
-    */
-
-    //startAfterUs(temp, &holdFrequenz);
+    measure();
 }
 
 void zeroCrossingListenerPhaseB(char edge)
@@ -218,7 +211,7 @@ void measure()
 {
     if(measureNr < NR_MEASURE_POINTS)
     {
-        measureValues[measureNr] = measuredTime;
+        measuredTimes[measureNr] = measuredTime;
         measureNr++;
     }
     else
@@ -227,7 +220,7 @@ void measure()
         measureNr = 0;
         while(measureNr <= NR_MEASURE_POINTS)
         {
-            logUnsignedInt(measureValues[measureNr], 5);
+            logUnsignedInt(measuredTimes[measureNr], 5);
             measureNr++;
         }
 
