@@ -41,7 +41,7 @@ MPCMn: Multi-processor Communication Mode
 -> Auf 0 setzen*/
 #define UART_REGISTER_A UCSR0A
 #define UART_DATA_REG_EMPTY_BIT UDRE0
-#define UART_REGISTER_A_VALUE ((0<<U2X0) | (0<<MPCM0))
+#define UART_REGISTER_A_VALUE ((1<<U2X0) | (0<<MPCM0))
 
 /** UCSRnB – USART Control and Status Register n B
 |7      |6      |5      |4      |3      |2      |1      |0      |
@@ -114,14 +114,16 @@ Bit 11:0 – UBRR11:0: USART Baud Rate Register
 fehler muss unter 0.5% liegen
      |U2Xn = 0       |U2Xn = 1       |
 Baud |UBRR   |Error  |UBRR   |Error  |
-9600 |103    |0.2%   |207    |0.2%   |
+9600 |103    |0.2%   |207    |0.2%   | -> 103 = 0b0110 0111
+57.6K|16     |2.1%   |32     |-0.8%  |
+250K |3      |0.0%   |7      |0.0%   | -> 3   = 0b0000 0011
 Table 22-12 p.226
 
 103 --> 0b0110 0111*/
 #define UART_BAUD_RATE_HIGH_BYTE UBRR0H
 #define UART_BAUD_RATE_LOW_BYTE UBRR0L
 #define UART_BAUD_RATE_HIGH_BYTE_VALUE 0
-#define UART_BAUD_RATE_LOW_BYTE_VALUE 0b01100111
+#define UART_BAUD_RATE_LOW_BYTE_VALUE 32;
 
 /** Benutzung Linux
 ttyACM3
