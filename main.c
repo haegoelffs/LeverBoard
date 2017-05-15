@@ -36,6 +36,7 @@ int main(void)
 	char duty_cycle = 0;
 	int tempo = 0;				//For forcing;			
 	char actual_current;
+	uint16_t systime = 0;
 	
 	// init modules and Hardware
 							
@@ -48,7 +49,13 @@ int main(void)
 	sei();					//enable interrupts
 	initTimers();		
     initDrive();
-
+	initSystime();
+	
+	
+	// systime////////////
+	
+	uint16_t getSystimeMs() = ;
+	/////////////
 	
     while(1)
     {
@@ -69,10 +76,10 @@ int main(void)
 			case 1: switchPwmOnOff(1);
 					if (numPiezo< 1)
 					{
-						setBatteryAlert();
+						systime = setBatteryAlert();
 						++numPiezo;		
 					}
-					else quitBatteryAlert();
+					else quitBatteryAlert(systime);
 					numLed = 0;
 					setLEDsBatteryPower(1);
 					
@@ -92,9 +99,9 @@ int main(void)
 					setLEDsBatteryPower(4);
 					if (numPiezo < 1)
 					{
-						setNoBreakAlert();
+						systime= setNoBreakAlert();
 					}
-					else quitNoBtreakAlert();
+					else quitNoBtreakAlert(systime);
 		}
 		emergencyShutDown(actual_current);
 		actual_current = give_actualcurrent(phaseState);

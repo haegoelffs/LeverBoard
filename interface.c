@@ -8,38 +8,35 @@ version: 0.1
 #include <avr/io.h>
 #include <util/delay.h>
 
-void setNoBreakAlert()
+uint16_t void setNoBreakAlert()
 	{
 		setPiezoSound(1);
-		//startTimeMeasurement(timeroverflow2);
-	};
+		return getSystimeMs();
+	}
 	
-void quitNoBtreakAlert()
+void quitNoBtreakAlert(	uint16_t sys)
 	{
-		//uint16_t ms = 2001 getTime();
-		if (1)
+		uint16_t sys2 = getSystimeMs();
+		if ((sys2-sys) > 2000)
 		{
-			stopTimeMeasurement(timeroverflow2);
 			setPiezoSound(0);
 		}
-	};
+	}
 
-void setBatteryAlert()									//energy is the Battery voltage, it is a value from 1 to 4 (1 is very low, 4 is very good)
+ uint16_t void setBatteryAlert()									//energy is the Battery voltage, it is a value from 1 to 4 (1 is very low, 4 is very good)
 	{
-		
 		setPiezoSound(1);
-		//startTimeMeasurement(timeroverflow2);
-	};
+		return getSystimeMs();
+	}
 	
-void quitBatteryAlert()
+void quitBatteryAlert(uint16_t sys)
+{
+	uint16_t sys2 = getSystimeMs();
+	if ((sys2-sys) > 1000)
 	{
-		//uint16_t ms = getTime2();
-		if(1) 
-		{
-			//uint16_t a = stopTimeMeasurement2();
 			setPiezoSound(0);
-		}
-	};
+	}
+}
 	
 void flashLEDs()
 {
@@ -48,7 +45,7 @@ void flashLEDs()
 	_delay_ms(1000);
 	setLEDsBatteryPower(0);
 	
-};
+}
 
 char give_new_dutycycle()
 {
