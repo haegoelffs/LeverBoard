@@ -52,6 +52,7 @@ int main(void)
     while(1)
     {
 		
+		/*
 		//Handle BatteryState
 		char BatteryState = getBatteryState();
 		logUnsignedInt("BatteryState",BatteryState,30);
@@ -94,10 +95,12 @@ int main(void)
 						systime= setNoBreakAlert();
 					}
 					else quitNoBtreakAlert(systime);
-		}
+		}*/
+		
+		handle_batteryState(&numLed, &numPiezo, &systime);
 		emergencyShutDown(actual_current);
 		actual_current = give_actualcurrent(phaseState);
-		char duty_cycle_prov = give_new_dutycycle();
+		char duty_cycle_prov = give_new_dutycycle(); 
 		duty_cycle = setPWMDutyCycle_dr(duty_cycle_prov, actual_current);
 	
 		
