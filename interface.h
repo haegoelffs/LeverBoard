@@ -6,7 +6,7 @@ version: 0.1
 #ifndef INTERFACE_H_INCLUDED
 #define INTERFACE_H_INCLUDED
 
-
+void initINTERFACE();                   //Initialices the Interface
 void setNoBreakAlert();					//Turns piezo on
 void quitNoBtreakAlert();				//Turns piezo off
 

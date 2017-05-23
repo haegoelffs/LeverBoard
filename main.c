@@ -32,15 +32,12 @@ int main(void)
 	
 	char numPiezo = 0;				//number of times piezo made a noise
 	char numLed = 0;				//number of times LEDs were flashed
-	//signed char new_current;		
 	char duty_cycle = 0;
-	int tempo = 0;				//For forcing;			
 	char actual_current;
 	uint16_t systime = 0;
 	
 	// init modules and Hardware
-							
-	//setPowerLED();		//Set Power LED
+    initINTERFACE();
 	initUART();
 	initAnalog();
 	changePhaseState(phaseState);
@@ -51,11 +48,6 @@ int main(void)
     initDrive();
 	initSystime();
 	
-	
-	// systime////////////
-	
-	uint16_t getSystimeMs() = ;
-	/////////////
 	
     while(1)
     {

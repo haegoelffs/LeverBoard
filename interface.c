@@ -8,6 +8,11 @@ version: 0.1
 #include <avr/io.h>
 #include <util/delay.h>
 
+void initINTERFACE()
+{
+    setPowerLED();
+}
+
 uint16_t void setNoBreakAlert()
 	{
 		setPiezoSound(1);
@@ -23,8 +28,7 @@ void quitNoBtreakAlert(	uint16_t sys)
 		}
 	}
 
- uint16_t void setBatteryAlert()									//energy is the Battery voltage, it is a value from 1 to 4 (1 is very low, 4 is very good)
-	{
+ uint16_t void setBatteryAlert(){
 		setPiezoSound(1);
 		return getSystimeMs();
 	}
