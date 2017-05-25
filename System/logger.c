@@ -25,7 +25,7 @@ void logMsg(char* msg)
     transmitString(msg);
 }
 
-void logMsgLine(char* msg)
+void logMsgLn(char *msg)
 {
     transmitString(msg);
     writeNewLine();

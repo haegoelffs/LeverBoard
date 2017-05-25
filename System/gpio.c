@@ -1,4 +1,5 @@
 #include <avr/io.h>
+#include "logger.h"
 
 #define TRISTATE_INPUT 0
 #define TRISTATE_OUTPUT 1
@@ -28,6 +29,8 @@
 
 void initGPIOs()
 {
+    logMsgLn("Init GPIOs...");
+
     TRISTATE_LEDS |= ((TRISTATE_OUTPUT<<PIN_LED0) | (TRISTATE_OUTPUT<<PIN_LED1) | (TRISTATE_OUTPUT<<PIN_LED2) | (TRISTATE_OUTPUT<<PIN_LED3));
     TRISTATE_PIEZO |= (TRISTATE_OUTPUT<<PIN_PIEZO);
     TRISTATE_BRIDGE_DRIVER |= ((TRISTATE_OUTPUT<<PIN_EN_GATE) | (TRISTATE_INPUT<<PIN_PWRGD) | (TRISTATE_INPUT<<PIN_nFAULT) | (TRISTATE_INPUT<<PIN_DC_CAL));
@@ -92,6 +95,18 @@ void enableBridgeDriver(char state)
     else
     {
         PORT_BRIDGE_DRIVER &= ~(1<<PIN_EN_GATE);
+    }
+}
+
+void setDC_cal(uint8_t state)
+{
+    if(state)
+    {
+        PORT_BRIDGE_DRIVER |= (1<<PIN_DC_CAL);
+    }
+    else
+    {
+        PORT_BRIDGE_DRIVER &= ~(1<<PIN_DC_CAL);
     }
 }
 

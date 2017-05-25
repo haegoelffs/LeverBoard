@@ -5,6 +5,7 @@
 #define LOG_INFO
 
 void logMsg(char *msg);
+void logMsgLn(char *msg);
 void logVar(char *name, int var, char stringLenght);
 void logNamedUnsignedInt(char *name, uint16_t var, char stringLenght);
 void logUnsignedInt(uint16_t var, char stringLenght);

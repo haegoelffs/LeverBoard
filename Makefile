@@ -10,6 +10,8 @@ System/uart.o \
 System/pwm.o \
 System/gpio.o \
 System/ext_comperator.o \
+System/spi.o \
+System/adc.o \
 startup.o \
 run.o
 

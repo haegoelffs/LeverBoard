@@ -163,7 +163,10 @@ Wenn = 1, digitaler Buffer zu ADC Pin (ADC15:8) disabled*/
 #define ADC_8TO15_DIGITAL_IO_DISABLE_REGISTER_value ((1<<ADC15D) | (1<<ADC14D) | (1<<ADC13D) | (1<<ADC12D) | (1<<ADC11D) | (1<<ADC10D) | (1<<ADC9D) | (1<<ADC8D))
 
 // Interrupts vectors
-//#define CONVERSION_COMPLETE_ISR ADC_vect
+#define CONVERSION_COMPLETE_ISR ADC_vect
+
+// constantes
+#define PHASE_CURRENT_OFFSET 128
 
 // includes
 #include "system.h"
@@ -180,6 +183,7 @@ typedef enum {
             current_s02_conv,
             hall_sensor_nose_conv,
             hall_sensor_tail_conv,
+            battery_conv,
             reference1_conv,
             reference2_conv,
             reference3_conv,
@@ -189,23 +193,175 @@ State state = no_conv;
 
 int8_t lastS01Current = 0;
 int8_t lastS02Current = 0;
+int8_t lastS03Current = 0;
 
 uint8_t lastHallSensorNose = 0;
 uint8_t lastHallSensorTail = 0;
+
+uint8_t lastBattery = 0;
 
 uint8_t lastReference1 = 0;
 uint8_t lastReference2 = 0;
 uint8_t lastReference3 = 0;
 uint8_t lastReference4 = 0;
 
+static void (*measurementDataAvailableListener)(void);
+
+// functions
+void proceedNextMeasure();
+
 void initAnalog()
 {
+    logMsgLn("Init Analog...");
+
     ADC_MULTIPLEXER |= ADC_MULTIPLEXER_value;
     ADC_CONTROL_A |= ADC_CONTROL_A_value;
     ADC_0TO7_DIGITAL_IO_DISABLE_REGISTER |= ADC_0TO7_DIGITAL_IO_DISABLE_REGISTER_value;
     ADC_8TO15_DIGITAL_IO_DISABLE_REGISTER |= ADC_8TO15_DIGITAL_IO_DISABLE_REGISTER_value;
 }
 
+void registerMeasurementDataAvailableListener(void (*listener)(void))
+{
+    measurementDataAvailableListener = listener;
+}
+
+int8_t startMeasureProcedure()
+{
+    if(state == no_conv)
+    {
+        proceedNextMeasure();
+        return 0;
+    }
+
+    return -1;
+}
+
+void proceedNextMeasure()
+{
+    switch(state)
+    {
+        case no_conv:
+            // select & start next measure
+            state = hall_sensor_nose_conv;
+            ADC_SELECT_HALL_NOSE;
+            ADC_START;
+        break;
+
+        case hall_sensor_nose_conv:
+            // store last data
+            lastHallSensorNose = ADC_DATA;
+
+            // select & start next measure
+            state = hall_sensor_tail_conv;
+            ADC_SELECT_HALL_TAIL;
+            ADC_START;
+        break;
+
+        case hall_sensor_tail_conv:
+            // store last data
+            lastHallSensorTail = ADC_DATA;
+
+            // select & start next measure
+            state = battery_conv;
+            ADC_SELECT_BATTERY;
+            ADC_START;
+        break;
+
+        case battery_conv:
+            // store last data
+            lastBattery = ADC_DATA;
+
+            // select & start next measure
+            state = current_s01_conv;
+            ADC_SELECT_CURRENT_S01;
+            ADC_START;
+        break;
+
+        case current_s01_conv:
+            // store last data
+            lastS01Current = ADC_DATA-PHASE_CURRENT_OFFSET;
+
+            // select & start next measure
+            state = current_s02_conv;
+            ADC_SELECT_CURRENT_S02;
+            ADC_START;
+        break;
+
+        case current_s02_conv:
+            // store last data
+            lastS02Current = ADC_DATA-PHASE_CURRENT_OFFSET;
+
+            // calculate current in third phase
+            lastS03Current = -lastS01Current-lastS02Current;
+
+            // select & start next measure
+            state = no_conv;
+
+            if(measurementDataAvailableListener != 0)
+            {
+                measurementDataAvailableListener();
+            }
+        break;
+
+        default:
+        // do nothing
+        break;
+    }
+}
+
+ISR (CONVERSION_COMPLETE_ISR)
+{
+    proceedNextMeasure();
+}
+
+uint8_t getLastHallSensorNoseVoltage()
+{
+    return lastHallSensorNose;
+}
+
+uint8_t getLastHallSensorTailVoltage()
+{
+    return lastHallSensorTail;
+}
+
+int8_t getLastPhaseACurrent()
+{
+    return lastS01Current;
+}
+
+int8_t getLastPhaseBCurrent()
+{
+    return lastS02Current;
+}
+
+int8_t getLastPhaseCCurrent()
+{
+    return lastS03Current;
+}
+
+uint8_t getLastBattery()
+{
+    return lastBattery;
+}
+
+// sensor 0 = Front
+// sensor 1 = Back
+uint8_t readInterfaceSensorsVoltage(char sensor)
+{
+    switch(sensor)
+    {
+        case 0:
+        return lastHallSensorNose;
+
+        case 1:
+        return lastHallSensorTail;
+
+        default:
+        return 0;
+    }
+}
+
+// blocking functions
 // sensor 0 = Front
 // sensor 1 = Back
 char readInterfaceSensorsVoltageBLOCKING(char sensor)
@@ -230,144 +386,50 @@ char readInterfaceSensorsVoltageBLOCKING(char sensor)
     return ADC_DATA;
 }
 
-/*
-int8_t startMeasurePhaseCurrents(void)
+char readReference1BLOCKING(void)
 {
-    if(state == no_conv)
-    {
-        state = current_s01_conv;
+    ADC_SELECT_REF1;
+    ADC_START;
 
-        ADC_SELECT_CURRENT_S01;
-        ADC_START;
+    while(!ADC_IS_FINISHED)
+    {}
+    ADC_RESET_FINISHED_FLAG;
 
-        return 0;
-    }
-
-    return -1;
+    return ADC_DATA;
 }
 
-void measurePhaseCurrents(void)
+char readReference2BLOCKING(void)
 {
-    switch(state)
-    {
-        case current_s01_conv:
-            state = current_s02_conv;
+    ADC_SELECT_REF2;
+    ADC_START;
 
-            lastS01Current = ADC_DATA;
+    while(!ADC_IS_FINISHED)
+    {}
+    ADC_RESET_FINISHED_FLAG;
 
-            ADC_SELECT_CURRENT_S02;
-            ADC_START;
-        break;
-
-        case current_s02_conv:
-            state = no_conv;
-
-            lastS02Current = ADC_DATA;
-        break;
-    }
+    return ADC_DATA;
 }
 
-void startMeasureHallSensors(void)
+char readReference3BLOCKING(void)
 {
-    if(state == no_conv)
-    {
-        state = hall_sensor_nose_conv;
+    ADC_SELECT_REF3;
+    ADC_START;
 
-        ADC_SELECT_HALL_NOSE;
-        ADC_START;
+    while(!ADC_IS_FINISHED)
+    {}
+    ADC_RESET_FINISHED_FLAG;
 
-        return 0;
-    }
-
-    return -1;
+    return ADC_DATA;
 }
 
-void measureHallSensors(void)
+char readReference4BLOCKING(void)
 {
-    switch(state)
-    {
-        case hall_sensor_nose_conv:
-            state = hall_sensor_tail_conv;
+    ADC_SELECT_REF4;
+    ADC_START;
 
-            lastS01Current = ADC_DATA;
+    while(!ADC_IS_FINISHED)
+    {}
+    ADC_RESET_FINISHED_FLAG;
 
-            ADC_SELECT_HALL_TAIL;
-            ADC_START;
-        break;
-
-        case hall_sensor_tail_conv:
-            state = no_conv;
-
-            lastS02Current = ADC_DATA;
-
-            ADC_SELECT_CURRENT_S01;
-            ADC_START;
-        break;
-    }
+    return ADC_DATA;
 }
-
-void startMeasureReferences(void)
-{
-}
-
-void measureReferences(void)
-{
-    switch(state)
-    {
-        case no_conv:
-            state = hall_sensor_nose_conv;
-
-            ADC_SELECT_HALL_NOSE;
-            ADC_START;
-        break;
-
-        case hall_sensor_nose_conv:
-            state = hall_sensor_tail_conv;
-
-            lastS01Current = ADC_DATA;
-
-            ADC_SELECT_HALL_TAIL;
-            ADC_START;
-        break;
-
-        case hall_sensor_tail_conv:
-            state = no_conv;
-
-            lastS02Current = ADC_DATA;
-
-            ADC_SELECT_CURRENT_S01;
-            ADC_START;
-        break;
-    }
-}
-
-
-// sensor 0 = Front
-// sensor 1 = Back
-char readInterfaceSensorsVoltage(char sensor)
-{
-}
-
-char readReference1()
-{
-}
-
-char readReference2()
-{
-}
-
-char readReference3()
-{
-}
-
-char readReference4()
-{
-}
-
-ISR (CONVERSION_COMPLETE_ISR)
-{
-    measurePhaseCurrents();
-    measureHallSensors();
-}*/
-
-

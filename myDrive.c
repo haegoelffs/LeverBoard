@@ -1,10 +1,8 @@
 #include <avr/io.h>
-#include <util/delay.h>
 #include <avr/interrupt.h>
 #include <avr/delay.h>
 #include <stdlib.h>
 #include <stdint.h>
-#include <util/delay.h>
 
 #include "System/system.h"
 #include "System/logger.h"
@@ -21,37 +19,44 @@ BufferDriveData *pDataBuffer = &dataBuffer;
 
 // functions
 void startupFinishedCallback(uint8_t phasestate, uint16_t time60deg);
+void measurementDataAvailable();
 
 int main(void)
 {
     // initialization-------------------------------------------------------------------
     initUART();
-    initGPIOs();
-
     writeNewLine();
-    logMsg("__Starting DRIVE tester__");
+    logMsgLn("__Starting DRIVE tester__");
 
-    logMsg("Enable global interrupts...");
-    sei();
-
-    logMsg("Enable bridge driver...");
-    enableBridgeDriver(1);
-
+    initGPIOs();
     initTimers();
     initComp();
     initPWM();
+    initSPI();
 
+    logMsgLn("Enable global interrupts...");
+    sei();
 
+    logMsgLn("Enable bridge driver...");
+    enableBridgeDriver(1);
+    setDC_cal(0);
+
+    registerMeasurementDataAvailableListener(&measurementDataAvailable);
+
+    #ifdef MEASURE
+    logMsgLn("Drive in measure mode");
+    #endif // MEASURE
 
     startSpeedUp(&startupFinishedCallback);
 
     while(1)
     {
+        //#ifdef MEASURE
         int16_t var1, var2, var3, var4;
 
         if(bufferOut(pDataBuffer,&var1, &var2, &var3 ,&var4))
         {
-           logSignedInt(var1, 5);
+            logSignedInt(var1, 5);
             logMsg(" ");
             logSignedInt(var2, 5);
             logMsg(" ");
@@ -60,6 +65,14 @@ int main(void)
             logSignedInt(var4, 5);
             writeNewLine();
         }
+        //#endif // MEASURE
+
+        /*spi_readStatusRegisters_BLOCKING();
+
+        logNamedUnsignedInt("Status 1", getLastStatusRegister1Value(), 15);
+        writeNewLine();
+        logNamedUnsignedInt("Status 2", getLastStatusRegister2Value(), 15);
+        writeNewLine();*/
     }
 
     return 0;
@@ -68,4 +81,9 @@ int main(void)
 void startupFinishedCallback(uint8_t phasestate, uint16_t time60deg)
 {
     startSynchronize(phasestate, time60deg);
+}
+
+void measurementDataAvailable()
+{
+    bufferIn(pDataBuffer, getLastPhaseACurrent(), getLastPhaseBCurrent(), getLastPhaseCCurrent(), getLastBattery());
 }

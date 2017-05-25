@@ -109,7 +109,7 @@ volatile uint16_t time_ms;
 
 void initSystime()
 {
-    logMsg("Init Systime...");
+    logMsgLn("Init Systime...");
 
     SYSTIME_CONTROL_REGISTER_A |= SYSTIME_CONTROL_REGISTER_A_value;
     SYSTIME_CONTROL_REGISTER_B |= SYSTIME_CONTROL_REGISTER_B_value;

@@ -79,7 +79,7 @@ static void (*listenerPhaseC)(char edge);
 
 void initComp()
 {
-    logMsg("Init comperators...");
+    logMsgLn("Init comperators...");
 
     EXT_INTERRUPT_4TO7_CONTROLL_REGISTER |= EXT_INTERRUPT_4TO7_CONTROLL_REGISTER_value;
     TRISTATE_COMP |= ((TRISTATE_INPUT<<INT_COMP_A) |(TRISTATE_INPUT<<INT_COMP_B) |(TRISTATE_INPUT<<INT_COMP_C)); // config as inputs

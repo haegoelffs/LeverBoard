@@ -56,19 +56,28 @@ uint32_t getTime();
 
 // analog values
 void initAnalog();
+int8_t startMeasureProcedure();
+void registerMeasurementDataAvailableListener(void (*listener)(void));
+
 char readBatteryVoltage();
 char readPhaseCurrnet(char phase); //value between 0 and 42, where 42 stands for 42 Ampére
 
 // sensor 0 = Front
 // sensor 1 = Back
-char readInterfaceSensorsVoltage(char sensor);
+uint8_t readInterfaceSensorsVoltage(char sensor);
+uint8_t getLastHallSensorNoseVoltage();
+uint8_t getLastHallSensorTailVoltage();
+int8_t getLastPhaseACurrent();
+int8_t getLastPhaseBCurrent();
+int8_t getLastPhaseCCurrent();
+uint8_t getLastBattery();
 
 char readInterfaceSensorsVoltageBLOCKING(char sensor);
 
-char readReference1();
-char readReference2();
-char readReference3();
-char readReference4();
+char readReference1BLOCKING();
+char readReference2BLOCKING();
+char readReference3BLOCKING();
+char readReference4BLOCKING();
 
 // comperators
 void initComp();
@@ -115,6 +124,7 @@ state >= 1: turn PWM on
 state = 0: turn PWM off
 **/
 void enableBridgeDriver(char state);
+void setDC_cal(uint8_t state);
 
 /** Turns on Power LED
 **/
@@ -128,5 +138,11 @@ uint16_t getSystimeMs();
 void initUART();
 void transmitString(char *msg);
 void transmitChar(char data);
+
+// spi
+void initSPI();
+void spi_readStatusRegisters_BLOCKING();
+uint16_t getLastStatusRegister1Value();
+uint16_t getLastStatusRegister2Value();
 
 #endif // SYSTEM_H_INCLUDED

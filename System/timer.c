@@ -193,7 +193,7 @@ void (*systimeOverflowCallback)(void);
 
 void initTimers()
 {
-    logMsg("Init Timers...");
+    logMsgLn("Init Timers...");
 
     START_AFTER_TIMER_CONTROLL_REGISTER_A |= START_AFTER_TIMER_CONTROLL_REGISTER_A_value;
     START_AFTER_TIMER_CONTROLL_REGISTER_B |= START_AFTER_TIMER_CONTROLL_REGISTER_B_value;

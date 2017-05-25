@@ -7,10 +7,9 @@
 #include <stdint.h>
 
 #define TIMING 5
-#define P_DIVIDER 200
+//#define P_DIVIDER 200 working settings
+#define P_DIVIDER 128
 #define I_DIVIDER 256
-
-#define MEASURE
 
  static uint8_t phasestate;
  static uint16_t time60deg;
@@ -24,7 +23,7 @@ void zeroCrossingListenerPhaseC(char edge);
 
 void timeMeassurementOverflow(void);
 
-void holdFrequenz(void);
+void switchPhases(void);
 void switchPhaseAndManageComps(void);
 
 void startSynchronize(uint8_t phasestate_init, uint16_t time60deg_init)
@@ -36,12 +35,12 @@ void startSynchronize(uint8_t phasestate_init, uint16_t time60deg_init)
     registerVoltageZeroCrossingListenerPhaseB(&zeroCrossingListenerPhaseB);
     registerVoltageZeroCrossingListenerPhaseC(&zeroCrossingListenerPhaseC);
 
-    setPWMDutyCycle(35);
+    setPWMDutyCycle(20);
 
-    holdFrequenz();
+    switchPhases();
 }
 
-void holdFrequenz(void)
+void switchPhases(void)
 {
     phasestate = (phasestate+1)%6;
     changePhaseState(phasestate);
@@ -77,50 +76,46 @@ void holdFrequenz(void)
         break;
     }
 
+    startMeasureProcedure(); // temp
+
     if(isTimeMeasurementRunning())
     {
         stopTimeMeasurement();
     }
     startTimeMeasurement(&timeMeassurementOverflow);
 
-    startAfterUs(time60deg, &holdFrequenz);
+    startAfterUs(time60deg, &switchPhases);
 }
 
 void zeroCrossingCalculations()
 {
     if(isTimeMeasurementRunning())
     {
-        uint16_t measuredTime;
-        measuredTime = (uint16_t)getTime();
+        uint16_t measuredTime = (uint16_t)stopTimeMeasurement();
 
-        // if(measuredTime > time60deg/12) überflüssig
-        {
-            stopTimeMeasurement();
+        setEnableCompA(0);
+        setEnableCompB(0);
+        setEnableCompC(0);
 
-            setEnableCompA(0);
-            setEnableCompB(0);
-            setEnableCompC(0);
+        uint16_t targetTime;
+        targetTime = (time60deg*(30-TIMING))/60;
 
-            uint16_t targetTime;
-            targetTime = (time60deg*(30-TIMING))/60;
+        // PI Controller
+        int16_t fault;
+        fault = (targetTime - measuredTime);
 
-            // PI Controller
-            int16_t fault;
-            fault = (targetTime - measuredTime);
+        static int32_t fault_I;
+        fault_I = fault_I + fault;
 
-            static int32_t fault_I;
-            fault_I = fault_I + fault;
+        int16_t controllerOut;
+        //controllerOut = (fault/P_DIVIDER + fault_I/I_DIVIDER);
+        controllerOut = fault / P_DIVIDER;
 
-            int16_t controllerOut;
-            //controllerOut = (fault/P_DIVIDER + fault_I/I_DIVIDER);
-            controllerOut = fault / P_DIVIDER;
+        time60deg = time60deg - controllerOut;
 
-            time60deg = time60deg - controllerOut;
-
-            #ifdef MEASURE
-            bufferIn(pDataBuffer, time60deg, measuredTime, fault, controllerOut);
-            #endif // MEASURE
-        }
+        #ifdef MEASURE
+        bufferIn(pDataBuffer, time60deg, measuredTime, fault, controllerOut);
+        #endif // MEASURE
     }
 }
 
