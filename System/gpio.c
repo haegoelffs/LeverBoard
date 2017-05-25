@@ -20,11 +20,11 @@
 
 #define PORT_BRIDGE_DRIVER PORTJ
 #define TRISTATE_BRIDGE_DRIVER DDRJ
-#define PIN_EN_GATE 4
-#define PIN_PWRGD 3
-#define PIN_nOCTW 2
-#define PIN_nFAULT 1
-#define PIN_DC_CAL 0
+#define PIN_EN_GATE 0
+#define PIN_PWRGD 4
+#define PIN_nOCTW 3
+#define PIN_nFAULT 2
+#define PIN_DC_CAL 1
 
 void initGPIOs()
 {
@@ -83,9 +83,9 @@ void setLEDsBatteryPower(char batteryPower)
 state >= 1: turn PWM on
 state = 0: turn PWM off
 **/
-void switchPwmOnOff(char state);
+void enableBridgeDriver(char state)
 {
-    if(enable)
+    if(state)
     {
         PORT_BRIDGE_DRIVER |= (1<<PIN_EN_GATE);
     }

@@ -52,6 +52,8 @@ uint8_t isTimeMeasurementRunning();
 */
 uint32_t stopTimeMeasurement();
 
+uint32_t getTime();
+
 // analog values
 void initAnalog();
 char readBatteryVoltage();
@@ -112,7 +114,7 @@ void setPiezoSound(char state);
 state >= 1: turn PWM on
 state = 0: turn PWM off
 **/
-void switchPwmOnOff(char state);
+void enableBridgeDriver(char state);
 
 /** Turns on Power LED
 **/

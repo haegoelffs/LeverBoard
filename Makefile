@@ -1,12 +1,23 @@
 # Makefile fuer AVR Assembler sources
 # (c) Matthias Meier, 24.2.2016
 
-# PROJECT = $(shell basename $(shell pwd))
+PROJECT = $(shell basename $(shell pwd))
 PROJECT = myDrive
+OBJS = $(PROJECT).o System/logger.o \
+System/ringbufferDriveData.o \
+System/timer.o \
+System/uart.o \
+System/pwm.o \
+System/gpio.o \
+System/ext_comperator.o \
+startup.o \
+run.o
+
 #PROJECT = system_tester_snippet
+#OBJS = $(PROJECT).o System/ringbufferDriveData.o System/logger.o System/timer.o System/uart.o
+
 #PROJECT = drive_tester_snippet
 
-OBJS = $(PROJECT).o System/ringbuffer.o System/logger.o System/loggerISR.o System/timer.o System/uart.o System/pwm.o System/adc.o System/ext_comperator.o System/systime.o startup.o run2.o
 #OBJS = $(PROJECT).o System/ringbuffer.o System/logger.o System/timer.o System/uart.o System/pwm.o System/ext_comperator.o System/systime.o startup.o measureZeroCrossing.o
 #OBJS = $(PROJECT).o System/ringbuffer.o System/logger.o System/timer.o System/uart.o System/pwm.o System/ext_comperator.o System/systime.o System/adc.o System/loggerISR.o
 

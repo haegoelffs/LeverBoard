@@ -66,12 +66,12 @@ WGM3:0 = 1010
 #define PWM_HS_C_OFF (PWM_HS_CONTROLL_REGISTER_A &= ~((1<<COM4C1) | (1<<COM4C0)))
 #define PWM_HS_C_ON (PWM_HS_CONTROLL_REGISTER_A |= ((1<<COM4C1) | (1<<COM4C0)))
 
-#define PWM_LS_A_OFF (PWM_LS_CONTROLL_REGISTER_A &= ~((1<<COM5A1) | (1<<COM5A0)))
-#define PWM_LS_A_ON (PWM_LS_CONTROLL_REGISTER_A |= ((1<<COM5A1) | (1<<COM5A0)))
+#define PWM_LS_C_OFF (PWM_LS_CONTROLL_REGISTER_A &= ~((1<<COM5A1) | (1<<COM5A0)))
+#define PWM_LS_C_ON (PWM_LS_CONTROLL_REGISTER_A |= ((1<<COM5A1) | (1<<COM5A0)))
 #define PWM_LS_B_OFF (PWM_LS_CONTROLL_REGISTER_A &= ~((1<<COM5B1) | (1<<COM5B0)))
 #define PWM_LS_B_ON (PWM_LS_CONTROLL_REGISTER_A |= ((1<<COM5B1) | (1<<COM5B0)))
-#define PWM_LS_C_OFF (PWM_LS_CONTROLL_REGISTER_A &= ~((1<<COM5C1) | (1<<COM5C0)))
-#define PWM_LS_C_ON (PWM_LS_CONTROLL_REGISTER_A |= ((1<<COM5C1) | (1<<COM5C0)))
+#define PWM_LS_A_OFF (PWM_LS_CONTROLL_REGISTER_A &= ~((1<<COM5C1) | (1<<COM5C0)))
+#define PWM_LS_A_ON (PWM_LS_CONTROLL_REGISTER_A |= ((1<<COM5C1) | (1<<COM5C0)))
 
 /** TCCR1B – Timer/Counter 1 Control Register B p.156
     |7      |6      |5      |4      |3      |2      |1      |0      |
@@ -142,12 +142,12 @@ Vergleichswert Timer 1 Kanal A.
 #define PWM_HS_C_COMPARE_VALUE_HIGH OCR4CH
 #define PWM_HS_C_COMPARE_VALUE_LOW OCR4CL
 
-#define PWM_LS_A_COMPARE_VALUE_HIGH OCR5AH
-#define PWM_LS_A_COMPARE_VALUE_LOW OCR5AL
+#define PWM_LS_C_COMPARE_VALUE_HIGH OCR5AH
+#define PWM_LS_C_COMPARE_VALUE_LOW OCR5AL
 #define PWM_LS_B_COMPARE_VALUE_HIGH OCR5BH
 #define PWM_LS_B_COMPARE_VALUE_LOW OCR5BL
-#define PWM_LS_C_COMPARE_VALUE_HIGH OCR5CH
-#define PWM_LS_C_COMPARE_VALUE_LOW OCR5CL
+#define PWM_LS_A_COMPARE_VALUE_HIGH OCR5CH
+#define PWM_LS_A_COMPARE_VALUE_LOW OCR5CL
 
 /** ICR1H and ICR1L – Input Capture Register 1 p.161
 |7      |6      |5      |4      |3      |2      |1      |0      |
@@ -195,9 +195,9 @@ Flags des entsprechenden Interrupts.
 
 #define PORT_LS_PWM PORTL
 #define TRISTATE_LS_PWM DDRL
-#define PIN_LS_A_PWM 3
+#define PIN_LS_C_PWM 3
 #define PIN_LS_B_PWM 4
-#define PIN_LS_C_PWM 5
+#define PIN_LS_A_PWM 5
 
 
 // INCLUDES:

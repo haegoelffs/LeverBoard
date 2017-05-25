@@ -5,8 +5,8 @@
 
 #define GRADIENT_PERCENT_SPEED_UP ((uint8_t)2)
 #define TIME_60DEG_SPEED_UP_START ((uint16_t)11000)
-//#define TIME_60DEG_SPEED_UP_END 2040
-#define TIME_60DEG_SPEED_UP_END 1800
+#define TIME_60DEG_SPEED_UP_END 2040
+//#define TIME_60DEG_SPEED_UP_END 1700
 
 uint8_t phasestate;
 uint16_t time60deg;
@@ -29,7 +29,7 @@ void startSpeedUp(void (*startupFinishedCallback)(uint8_t, uint16_t))
     setEnableCompB(0);
     setEnableCompC(0);
 
-    setPWMDutyCycle(40);
+    setPWMDutyCycle(50);
 
     time60deg = TIME_60DEG_SPEED_UP_START; //us
     speedUpFrequenz();

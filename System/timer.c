@@ -302,3 +302,13 @@ uint32_t stopTimeMeasurement()
     SYSTIME_TIMER_VALUE_LOW = 0;
     return (temp*4);
 }
+
+uint32_t getTime()
+{
+    uint8_t low = SYSTIME_TIMER_VALUE_LOW;
+    uint8_t high = SYSTIME_TIMER_VALUE_HIGH;
+
+    uint16_t temp = ( (((uint16_t)high)<<8) + low );
+
+    return (temp*4);
+}
