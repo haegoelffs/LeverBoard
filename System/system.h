@@ -22,6 +22,7 @@ void setPWMDutyCycle(uint8_t dutyCycle);
     state = 5: A heavyside, B lowside
     state > 5: power off all channels
 **/
+char getPhaseState();
 void changePhaseState(uint8_t state);
 
 // timers

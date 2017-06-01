@@ -14,6 +14,6 @@ void setBatteryAlert();					//Turns piezo on
 void quitBatteryAlert();				//Turns piezo off
 void timeroverflow2();					//Called when timer2 has an overflow. Does nothing
 void flashLEDs();						//Flashes all 4 Energy LEDs
-char give_new_dutycycle();				//Returns the new duty cycle, considering the angle of the board.
+void set_new_dutycycle();				//Returns the new duty cycle, considering the angle of the board.
 
 #endif // INTERFACE_H_INCLUDED
