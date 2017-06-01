@@ -19,7 +19,7 @@ BufferDriveData *pDataBuffer = &dataBuffer;
 
 // functions
 void startupFinishedCallback(uint8_t phasestate, uint16_t time60deg);
-void measurementDataAvailable();
+//void measurementDataAvailable();
 
 int main(void)
 {
@@ -32,16 +32,20 @@ int main(void)
     initTimers();
     initComp();
     initPWM();
-    initSPI();
+    //initSPI();
+    //initAnalog();
 
     logMsgLn("Enable global interrupts...");
     sei();
 
     logMsgLn("Enable bridge driver...");
     enableBridgeDriver(1);
-    setDC_cal(0);
+    setDC_cal(1);
 
-    registerMeasurementDataAvailableListener(&measurementDataAvailable);
+    setPowerLED();
+    setLEDsBatteryPower(2);
+
+    //registerMeasurementDataAvailableListener(&measurementDataAvailable);
 
     #ifdef MEASURE
     logMsgLn("Drive in measure mode");
@@ -51,7 +55,7 @@ int main(void)
 
     while(1)
     {
-        //#ifdef MEASURE
+        #ifdef MEASURE
         int16_t var1, var2, var3, var4;
 
         if(bufferOut(pDataBuffer,&var1, &var2, &var3 ,&var4))
@@ -65,7 +69,7 @@ int main(void)
             logSignedInt(var4, 5);
             writeNewLine();
         }
-        //#endif // MEASURE
+        #endif // MEASURE
 
         /*spi_readStatusRegisters_BLOCKING();
 
@@ -83,7 +87,7 @@ void startupFinishedCallback(uint8_t phasestate, uint16_t time60deg)
     startSynchronize(phasestate, time60deg);
 }
 
-void measurementDataAvailable()
+/*void measurementDataAvailable()
 {
     bufferIn(pDataBuffer, getLastPhaseACurrent(), getLastPhaseBCurrent(), getLastPhaseCCurrent(), getLastBattery());
-}
+}*/

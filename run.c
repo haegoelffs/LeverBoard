@@ -7,8 +7,8 @@
 #include <stdint.h>
 
 #define TIMING 5
-//#define P_DIVIDER 200 working settings
-#define P_DIVIDER 128
+#define P_DIVIDER 200
+//#define P_DIVIDER 128
 #define I_DIVIDER 256
 
  static uint8_t phasestate;
@@ -76,7 +76,7 @@ void switchPhases(void)
         break;
     }
 
-    startMeasureProcedure(); // temp
+    //startMeasureProcedure(); // temp
 
     if(isTimeMeasurementRunning())
     {

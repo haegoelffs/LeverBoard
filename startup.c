@@ -24,14 +24,14 @@ void switchPhase(void);
 
 void startSpeedUp(void (*startupFinishedCallback)(uint8_t, uint16_t))
 {
-    logMsg("Start speed up engine...");
+    logMsgLn("Start speed up engine...");
     callback = startupFinishedCallback;
 
     setEnableCompA(0);
     setEnableCompB(0);
     setEnableCompC(0);
 
-    setPWMDutyCycle(50);
+    setPWMDutyCycle(20);
 
     time60deg = TIME_60DEG_SPEED_UP_START; //us
     speedUpFrequenz();
