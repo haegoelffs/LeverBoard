@@ -17,7 +17,7 @@ void emergencyShutDown(char current)
 
 char getBatteryState()
 {
-	char voltage = readBatteryVoltageBlocking();
+	char voltage = getLastBattery();
 	if(voltage <= 90)     //21V // 1.75
 	{
 		return 0;

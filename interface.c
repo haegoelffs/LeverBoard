@@ -8,6 +8,8 @@ version: 0.1
 #include <avr/io.h>
 #include <util/delay.h>
 
+static char newData;
+
 void initINTERFACE()
 {
     setPowerLED();
@@ -51,24 +53,55 @@ void flashLEDs()
 	
 }
 
-char give_new_dutycycle()
+void set_new_dutycycle()
 {
-	char front = readInterfaceSensorsVoltageBLOCKING(0);	//Hallsensor front
-	char tail = readInterfaceSensorsVoltageBLOCKING(1);;	   //Hallsensor tail
+	static char duty_cycle;
+	char front = getLastHallSensorNoseVoltage();	//Hallsensor front
+	char tail =  getLastHallSensorTailVoltage();	   //Hallsensor tail
 	char delta_sensors;
-	char duty_cycletemp;
+	char tobe_current = 0;
 	if(front > tail)
 	{
 		delta_sensors = front - tail;
 	}
 	else delta_sensors = 0;
-	if((delta_sensors < 25)) return 0;
-	if (delta_sensors > 81) return 100;
+	if((delta_sensors < 25)) tobe_current = 0;
+	if (delta_sensors > 81) tobe_current = 42;
 	else
 	{
-		duty_cycletemp = (delta_sensors * 100)/81;
+		tobe_current = (delta_sensors * 42)/81;
 	}
-	return duty_cycletemp;
+	registerMeasurementDataAvailableListener(&new_data_available);
+	if (newData)
+	{
+		char actual_current;
+		char phaseState = getPhaseState();
+		switch (phaseState)
+		{
+			case 1: actual_current= getLastPhaseACurrent();
+			break;
+			case 2: actual_current= getLastPhaseBCurrent();
+			break;
+			case 3: actual_current= getLastPhaseCCurrent();
+			break;
+		}
+		if(((actual_current > tobe_current) && (duty_cycle > 0)) || actual_current > 42)
+		{
+			--duty_cycle;
+		}
+		else if ((actual_current < tobe_current && (duty_cycle < 100)) || actual_current < 42)
+		{
+			++duty_cycle;
+		}
+		setPWMDutyCycle(duty_cycle);
+		newData = 0;
+	}
+	
+}
+
+void new_data_available(void)
+{
+	newData = 1;
 }
 
 void timeroverflow2()

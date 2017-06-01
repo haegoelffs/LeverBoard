@@ -12,14 +12,13 @@ version: 0.1
 #include "interface.h"
 #include "energy.h"
 #define EXTERN
-#include "global.h"     //Global variables
+//#include "global.h"     //Global variables
 #include "logger.h"
 #include <avr/interrupt.h>
 #include <util/delay.h>
 
 
 //Global Variables
-char phaseState = 1;
 uint16_t delta_time = 0;
 char enable = 1;
 
@@ -30,17 +29,16 @@ int main(void)
 
 	//init variables
 	
+	char phaseState;
 	char numPiezo = 0;				//number of times piezo made a noise
 	char numLed = 0;				//number of times LEDs were flashed
-	char duty_cycle = 0;
-	char actual_current;
+	char actual_current = 0;
 	uint16_t systime = 0;
 	
 	// init modules and Hardware
     initINTERFACE();
 	initUART();
 	initAnalog();
-	changePhaseState(phaseState);
 	initPWM();
 	initComp();
 	sei();					//enable interrupts
@@ -97,12 +95,19 @@ int main(void)
 					else quitNoBtreakAlert(systime);
 		}*/
 		
+		phaseState = getPhaseState();
 		handle_batteryState(&numLed, &numPiezo, &systime);
 		emergencyShutDown(actual_current);
-		actual_current = give_actualcurrent(phaseState);
-		char duty_cycle_prov = give_new_dutycycle(); 
-		duty_cycle = setPWMDutyCycle_dr(duty_cycle_prov, actual_current);
-	
+		switch (phaseState)
+		{
+			case 1: actual_current= getLastPhaseACurrent();
+					break;
+			case 2: actual_current= getLastPhaseBCurrent();
+					break;
+			case 3: actual_current= getLastPhaseCCurrent();
+					break;
+		}
+		set_new_dutycycle();
 		
 	}
 }
