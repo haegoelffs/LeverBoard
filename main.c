@@ -11,39 +11,51 @@ version: 0.1
 #include "system.h"
 #include "interface.h"
 #include "energy.h"
+#define EXTERN
 #include "global.h"     //Global variables
+#include "logger.h"
+#include <avr/interrupt.h>
+#include <util/delay.h>
+
+
+//Global Variables
+char phaseState = 1;
+uint16_t delta_time = 0;
+char enable = 1;
 
 int main(void)
-{
-    // init Hardware
-    initUART();
+{   
 	initGPIOs();
-    initAnalog();
-    initPWM();
-	
-	
+
+
 	//init variables
 	
-	char numPiezo = 0;       //number of times piezo made a noise
-	char numLed = 0;		//number of times LEDs were flashed
-	signed char new_current;
+	char numPiezo = 0;				//number of times piezo made a noise
+	char numLed = 0;				//number of times LEDs were flashed
 	char duty_cycle = 0;
-	phaseState = 7;
-	uint16_t delta_time = 100;
+	char actual_current;
+	uint16_t systime = 0;
 	
-	
-    // init modules
-    //initEnergy();
-    //initInterface();
+	// init modules and Hardware
+    initINTERFACE();
+	initUART();
+	initAnalog();
+	changePhaseState(phaseState);
+	initPWM();
+	initComp();
+	sei();					//enable interrupts
+	initTimers();		
     initDrive();
+	initSystime();
 	
-	//Set Power LED
-	setPowerLED();
 	
     while(1)
     {
+		
+		/*
 		//Handle BatteryState
 		char BatteryState = getBatteryState();
+		logUnsignedInt("BatteryState",BatteryState,30);
 		switch(BatteryState) {
 			case 0: switchPwmOnOff(0);
 					if(numLed < 1)
@@ -57,10 +69,10 @@ int main(void)
 			case 1: switchPwmOnOff(1);
 					if (numPiezo< 1)
 					{
-						setBatteryAlert();
+						systime = setBatteryAlert();
 						++numPiezo;		
 					}
-					else quitBatteryAlert();
+					else quitBatteryAlert(systime);
 					numLed = 0;
 					setLEDsBatteryPower(1);
 					
@@ -80,17 +92,18 @@ int main(void)
 					setLEDsBatteryPower(4);
 					if (numPiezo < 1)
 					{
-						setNoBreakAlert();
+						systime= setNoBreakAlert();
 					}
-					else quitNoBtreakAlert();
-		}
+					else quitNoBtreakAlert(systime);
+		}*/
 		
-		
-		//signed char new_current = give_newcurrent();
-		duty_cycle= give_new_dutycycle();
-		char actual_current = give_actualcurrent(phase_state);
-		duty_cycle = setPWMDutyCycle_dr(duty_cycle, actual_current);
-		//rise_sink_pwm_dutyc(new_current,actual_current,duty_cycle);
+		handle_batteryState(&numLed, &numPiezo, &systime);
 		emergencyShutDown(actual_current);
+		actual_current = give_actualcurrent(phaseState);
+		char duty_cycle_prov = give_new_dutycycle(); 
+		duty_cycle = setPWMDutyCycle_dr(duty_cycle_prov, actual_current);
+	
+		
 	}
 }
+		

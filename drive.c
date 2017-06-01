@@ -6,76 +6,109 @@ version: 0.1
 #include "system.h"
 #include "global.h"
 
+
 void initDrive()
 {
 	 //edge = 0: falling edge
 	 // edge = 1: rising edge
-	registerVoltageZeroCrossingListenerPhaseA(&set_phase_state1);
+	setEnableCompA(1);
+	registerVoltageZeroCrossingListenerPhaseA(&set_time1);
+}
+
+void set_time1(char edge)
+{
+    if(edge == 0)
+    {
+		disableCompA();
+        startTimeMeasurement(&timeroverflow1);
+        registerVoltageZeroCrossingListenerPhaseA(&set_time2);
+    }
+}
+
+void set_time2(char edge)
+{
+    if(edge == 1)
+    {
+		disableCompA();
+        delta_time = stopTimeMeasurement()/3;
+        uint16_t delta_time_half = delta_time/2;
+		startAfterUs(delta_time_half, &set_phase_state_s);
+        registerVoltageZeroCrossingListenerPhaseA(&set_time1);
+    }
+}
+
+void set_phase_state_s()
+{
+	phaseState = 5;
+	changePhaseState(5);
+	startAfterUs(delta_time, &set_phase_state);
+}
+
+void set_phase_state()
+{
+	switch (phaseState)
+	{
+		case 0:
+			enableCompA();
+			startAfterUs(delta_time, &set_phase_state);
+			phaseState= 1;
+			changePhaseState(1);
+			break;
+		case 1:
+			startAfterUs(delta_time, &set_phase_state);
+			phaseState= 2;
+			changePhaseState(2);
+			break;
+		case 2:
+			startAfterUs(delta_time, &set_phase_state);
+			phaseState= 3;
+			changePhaseState(3);
+			break;
+		case 3:
+			enableCompA();
+			startAfterUs(delta_time,  &set_phase_state);
+			phaseState= 4;
+			changePhaseState(4);
+			break;
+		case 4:
+			// Do nothing
+			break;
+		case 5:
+			startAfterUs(delta_time, &set_phase_state);
+			phaseState= 6;
+			changePhaseState(6);
+			break;
+	}
 }
 
 void timeroverflow1()
 {
-	//do nothing
+	//logVar("over",4,10);
 }
 
-void set_phase_state1(char edge)
+void disableCompA()
 {
-    if(edge == 0)
-    {
-        startTimeMeasurement1(&timeroverflow1);
-        registerVoltageZeroCrossingListenerPhaseA(&set_phase_state2);
-    }
-}
-
-void set_phase_state2(char edge)
-{
-    if(edge == 1)
-    {
-        delta_time = stopTimeMeasurement1()/3;
-        uint16_t delta_time_half = delta_time/2;
-        startAfterMs1(delta_time_half, set_phase_state3);
-        registerVoltageZeroCrossingListenerPhaseA(&set_phase_state1);
-    }
-}
-
-void set_phase_state3()
-{
-	changePhaseState(5);
-	phaseState = 5;
-	startAfterMs1(delta_time, &set_phase_state4);
-}
-
-void set_phase_state4()
-{
-	switch (phaseState)
+	if(enable == 0)
 	{
-	case 0:
-		startAfterMs1(delta_time, &set_phase_state4);
-		phaseState= 1;
-		changePhaseState(1);
-		break;
-	case 1:
-		startAfterMs1(delta_time,  &set_phase_state4);
-		phaseState= 2;
-		changePhaseState(2);
-		break;
-	case 2:
-		startAfterMs1(delta_time, &set_phase_state4);
-		phaseState= 3;
-		changePhaseState(3);
-		break;
-	case 3:
-		startAfterMs1(delta_time, &set_phase_state4);
-		phaseState= 4;
-		changePhaseState(4);
-		break;
+		setEnableCompA(0);
 	}
 }
 
-char give_actualcurrent()
+void enableCompA()
 {
-	switch(phaseState)
+	if(enable == 0)
 	{
+		setEnableCompA(1);
+	}
+}
+
+char give_actualcurrent(char phase)
+{
+	
+	switch(phase)
+	{
+		
+		
 		case 0:
 			return readPhaseCurrnet(1);
 		case 1:
@@ -90,7 +123,9 @@ char give_actualcurrent()
 			return readPhaseCurrnet(1);
 		default:
 			return 0;
+			
 	}
+	
 }
 
 char setPWMDutyCycle_dr(char dutyCycle, char current)
@@ -100,22 +135,101 @@ char setPWMDutyCycle_dr(char dutyCycle, char current)
 		setPWMDutyCycle(dutyCycle);
 		return dutyCycle;
 	}
-	else if (dutyCycle != 0) return dutyCycle -10
-	else return 0;
+	else if (dutyCycle != 0) 
+	{
+		while((give_actualcurrent(phaseState) > 42) && (dutyCycle > 0))
+		{
+			dutyCycle -= 5;
+			setPWMDutyCycle(dutyCycle);
+			
+		}
+		
+		return (dutyCycle);
+	}
+	return 0;
 }
 
-void rise_sink_pwm_dutyc(char new_current,char actual_current, char duty_cycle)
+
+/*
+void timeroverflow1()
 {
-	if((actual_current < new_current) && (duty_cycle < 100))
-	{
-		++duty_cycle;
-		setPWMDutyCycle(duty_cycle);
-	}
-	else if ((actual_current > new_current) && (duty_cycle > 0))
-	{
-		--duty_cycle;
-		setPWMDutyCycle(duty_cycle);
-	}
-	else duty_cycle= 0;
-	setPWMDutyCycle(duty_cycle);
+	logVar("over",4,10);
 }
+
+void initDrive()
+{
+	//edge = 0: falling edge
+	// edge = 1: rising edge
+	setEnableCompB(1);
+	registerVoltageZeroCrossingListenerPhaseB(&set_phase_state1);
+	setEnableCompB(1);
+}
+
+void set_phase_state1(char edge)
+{
+	
+	if(edge == 1)
+	{
+		//setEnableCompB(0);
+		startTimeMeasurement(&timeroverflow1);
+		//setEnableCompA(1);
+		registerVoltageZeroCrossingListenerPhaseA(&set_phase_state2);
+	}
+	
+	//logVar("edge",edge,10);
+}
+
+void set_phase_state2(char edge)
+{
+	if(edge == 0)
+	{
+		//setEnableCompA(0);
+		delta_time = stopTimeMeasurement();
+		uint16_t delta_time_half = delta_time/2;
+		startAfterUs(delta_time_half, set_phase_state3);
+		//setEnableCompB(1);
+		registerVoltageZeroCrossingListenerPhaseB(&set_phase_state1);
+	}
+}
+
+void set_phase_state3()
+{
+	phaseState = 2;
+	changePhaseState(2);
+	startAfterUs(delta_time, &set_phase_state4);
+}
+
+void set_phase_state4()
+{
+	switch (phaseState)
+	{
+		case 2:
+			startAfterUs(delta_time, &set_phase_state4);
+			phaseState= 3;
+			changePhaseState(3);
+			break;
+		case 3:
+			startAfterUs(delta_time, &set_phase_state4);
+			phaseState= 4;
+			changePhaseState(4);
+			break;
+		case 4:
+			startAfterUs(delta_time, &set_phase_state4);
+			phaseState= 5;
+			changePhaseState(5);
+			break;
+		case 5:
+			startAfterUs(delta_time, &set_phase_state4);
+			phaseState= 0;
+			changePhaseState(0);
+			break;
+		case 0:
+			startAfterUs(delta_time, &set_phase_state4);
+			phaseState= 1;
+			changePhaseState(1);
+			break;
+		
+		
+	}
+}
+*/
