@@ -6,9 +6,9 @@
 
 #include <stdint.h>
 
-#define TIMING 5
-#define P_DIVIDER 200
-//#define P_DIVIDER 128
+#define TIMING 10
+//#define P_DIVIDER 200
+#define P_DIVIDER 256
 #define I_DIVIDER 256
 
  static uint8_t phasestate;
@@ -97,7 +97,7 @@ void zeroCrossingCalculations()
         setEnableCompB(0);
         setEnableCompC(0);
 
-        uint16_t targetTime;
+        /*uint16_t targetTime;
         targetTime = (time60deg*(30-TIMING))/60;
 
         // PI Controller
@@ -111,10 +111,10 @@ void zeroCrossingCalculations()
         //controllerOut = (fault/P_DIVIDER + fault_I/I_DIVIDER);
         controllerOut = fault / P_DIVIDER;
 
-        time60deg = time60deg - controllerOut;
+        time60deg = time60deg - controllerOut;*/
 
         #ifdef MEASURE
-        bufferIn(pDataBuffer, time60deg, measuredTime, fault, controllerOut);
+        //bufferIn(pDataBuffer, time60deg, measuredTime, fault, controllerOut);
         #endif // MEASURE
     }
 }

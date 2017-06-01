@@ -8,7 +8,7 @@
 #define TIME_60DEG_SPEED_UP_START ((uint16_t)8000)
 //#define TIME_60DEG_SPEED_UP_END 2040
 #define TIME_60DEG_SPEED_UP_END 2000
-#define STEPSIZE 5
+#define STEPSIZE 10
 
 uint8_t phasestate;
 uint16_t time60deg;

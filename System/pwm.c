@@ -216,6 +216,8 @@ Flags des entsprechenden Interrupts.
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
+uint8_t phaseState = 6; // power off all
+
 // pwm
 void initPWM()
 {
@@ -248,7 +250,7 @@ void initPWM()
     state = 5: A heavyside, B lowside
     state > 5: power off all channels
 **/
-void changePhaseState(uint8_t state)
+void changePhaseState(uint8_t newPhaseState)
 {
     PWM_HS_A_OFF;
     PWM_HS_B_OFF;
@@ -292,6 +294,13 @@ void changePhaseState(uint8_t state)
         default:
             break;
     }
+
+    phaseState = newPhaseState;
+}
+
+uint8_t getPhaseState()
+{
+    return phaseState;
 }
 
 /** Sets the dutycycle of the pwm.

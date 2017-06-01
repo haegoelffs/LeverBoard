@@ -120,7 +120,7 @@ ADPS2=1 ADPS1=1 ADPS0=0 : clk/64
 ADPS2=1 ADPS1=1 ADPS0=1 : clk/128
 */
 #define ADC_CONTROL_A ADCSRA
-#define ADC_CONTROL_A_value ((1<<ADEN) | (0<<ADSC) | (0<<ADATE) | (0<<ADIF) | (0<<ADIE) | (1<<ADPS2) | (1<<ADPS1) | (0<<ADPS0))
+#define ADC_CONTROL_A_value ((1<<ADEN) | (0<<ADSC) | (0<<ADATE) | (0<<ADIF) | (1<<ADIE) | (1<<ADPS2) | (1<<ADPS1) | (0<<ADPS0))
 
 #define ADC_START (ADC_CONTROL_A |= (1<<ADSC))
 #define ADC_IS_FINISHED (ADC_CONTROL_A & (1<<ADIF))

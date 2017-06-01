@@ -10,6 +10,8 @@
 #include "synchronize.h"
 #include "System/ringbufferDriveData.h"
 
+#define MEASURE
+
 // variables
 volatile uint8_t phasestate = 0;
 volatile uint32_t time60deg = 0;
@@ -19,7 +21,7 @@ BufferDriveData *pDataBuffer = &dataBuffer;
 
 // functions
 void startupFinishedCallback(uint8_t phasestate, uint16_t time60deg);
-//void measurementDataAvailable();
+void measurementDataAvailable();
 
 int main(void)
 {
@@ -33,7 +35,7 @@ int main(void)
     initComp();
     initPWM();
     //initSPI();
-    //initAnalog();
+    initAnalog();
 
     logMsgLn("Enable global interrupts...");
     sei();
@@ -42,10 +44,10 @@ int main(void)
     enableBridgeDriver(1);
     setDC_cal(1);
 
-    setPowerLED();
-    setLEDsBatteryPower(2);
+    //setPowerLED();
+    //setLEDsBatteryPower(2);
 
-    //registerMeasurementDataAvailableListener(&measurementDataAvailable);
+    registerMeasurementDataAvailableListener(&measurementDataAvailable);
 
     #ifdef MEASURE
     logMsgLn("Drive in measure mode");
@@ -87,7 +89,7 @@ void startupFinishedCallback(uint8_t phasestate, uint16_t time60deg)
     startSynchronize(phasestate, time60deg);
 }
 
-/*void measurementDataAvailable()
+void measurementDataAvailable()
 {
     bufferIn(pDataBuffer, getLastPhaseACurrent(), getLastPhaseBCurrent(), getLastPhaseCCurrent(), getLastBattery());
-}*/
+}
