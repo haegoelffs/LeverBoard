@@ -11,7 +11,7 @@ version: 0.1
 #include "system.h"
 #include "interface.h"
 #include "energy.h"
-#define EXTERN
+//#define EXTERN
 //#include "global.h"     //Global variables
 #include "logger.h"
 #include <avr/interrupt.h>

@@ -21,6 +21,8 @@ void set_time1(char edge)
     {
 		disableCompA();
         startTimeMeasurement(&timeroverflow1);
+		uint16_t offtime = delta_time * 2.5;
+		startAfterUs(offtime , &enableCompA);
         registerVoltageZeroCrossingListenerPhaseA(&set_time2);
     }
 }
@@ -32,7 +34,8 @@ void set_time2(char edge)
 		disableCompA();
         delta_time = stopTimeMeasurement()/3;
         uint16_t delta_time_half = delta_time/2;
-		startAfterUs(delta_time_half, &set_phase_state_s);
+		uint16_t offtime = 2.5 * delta_time;
+        startAfterUs(delta_time_half, &set_phase_state_s);
         registerVoltageZeroCrossingListenerPhaseA(&set_time1);
     }
 }
@@ -49,7 +52,7 @@ void set_phase_state()
 	switch (phaseState)
 	{
 		case 0:
-			enableCompA();
+			enableCompA()
 			startAfterUs(delta_time, &set_phase_state);
 			phaseState= 1;
 			changePhaseState(1);
@@ -65,7 +68,7 @@ void set_phase_state()
 			changePhaseState(3);
 			break;
 		case 3:
-			enableCompA();
+			enableCompA()
 			startAfterUs(delta_time,  &set_phase_state);
 			phaseState= 4;
 			changePhaseState(4);
@@ -104,7 +107,7 @@ void enableCompA()
 
 char give_actualcurrent(char phase)
 {
-	
+	/*
 	switch(phase)
 	{
 		
@@ -125,7 +128,8 @@ char give_actualcurrent(char phase)
 			return 0;
 			
 	}
-	
+	*/
+	return 30;
 }
 
 char setPWMDutyCycle_dr(char dutyCycle, char current)
@@ -137,17 +141,29 @@ char setPWMDutyCycle_dr(char dutyCycle, char current)
 	}
 	else if (dutyCycle != 0) 
 	{
-		while((give_actualcurrent(phaseState) > 42) && (dutyCycle > 0))
-		{
-			dutyCycle -= 5;
-			setPWMDutyCycle(dutyCycle);
-			
-		}
-		
-		return (dutyCycle);
+		return (dutyCycle - 10);
 	}
-	return 0;
+	else return 0;
 }
+
+/*
+void rise_sink_pwm_dutyc(char new_current,char actual_current, char duty_cycle)
+{
+	
+	if((actual_current < new_current) && (duty_cycle < 100))
+	{
+		++duty_cycle;
+		setPWMDutyCycle(duty_cycle);
+	}
+	else if ((actual_current > new_current) && (duty_cycle > 0))
+	{
+		--duty_cycle;
+		setPWMDutyCycle(duty_cycle);
+	}
+	else duty_cycle= 0;
+	setPWMDutyCycle(duty_cycle);
+}*/
+
 
 
 /*

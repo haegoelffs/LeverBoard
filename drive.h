@@ -18,6 +18,6 @@ void disableCompA();
 void enableCompA();
 char give_actualcurrent(char phase);  //gives the current of the active phase
 char setPWMDutyCycle_dr(char dutyCycle, char current); //Sets the Pwm duty cycle {0,...,100}
-
+void rise_sink_pwm_dutyc(char new_current,char actual_current, char duty_cycle); //Not used at the moment
 
 #endif // DRIVE_H_INCLUDED

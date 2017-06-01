@@ -15,7 +15,7 @@ void initINTERFACE()
     setPowerLED();
 }
 
-uint16_t void setNoBreakAlert()
+uint16_t  setNoBreakAlert()
 	{
 		setPiezoSound(1);
 		return getSystimeMs();
@@ -30,7 +30,7 @@ void quitNoBtreakAlert(	uint16_t sys)
 		}
 	}
 
- uint16_t void setBatteryAlert(){
+ uint16_t  setBatteryAlert(){
 		setPiezoSound(1);
 		return getSystimeMs();
 	}
@@ -84,6 +84,7 @@ void set_new_dutycycle()
 			break;
 			case 3: actual_current= getLastPhaseCCurrent();
 			break;
+			default : actual_current = 47;
 		}
 		if(((actual_current > tobe_current) && (duty_cycle > 0)) || actual_current > 42)
 		{
