@@ -20,7 +20,7 @@ uint16_t void setNoBreakAlert()
 		setPiezoSound(1);
 		return getSystimeMs();
 	}
-	
+
 void quitNoBtreakAlert(	uint16_t sys)
 	{
 		uint16_t sys2 = getSystimeMs();
@@ -34,7 +34,7 @@ void quitNoBtreakAlert(	uint16_t sys)
 		setPiezoSound(1);
 		return getSystimeMs();
 	}
-	
+
 void quitBatteryAlert(uint16_t sys)
 {
 	uint16_t sys2 = getSystimeMs();
@@ -43,14 +43,14 @@ void quitBatteryAlert(uint16_t sys)
 			setPiezoSound(0);
 	}
 }
-	
+
 void flashLEDs()
 {
 	for(char i = 0; i < 10; ++i)
 	setLEDsBatteryPower(4);
 	_delay_ms(1000);
 	setLEDsBatteryPower(0);
-	
+
 }
 
 void set_new_dutycycle()
@@ -78,12 +78,18 @@ void set_new_dutycycle()
 		char phaseState = getPhaseState();
 		switch (phaseState)
 		{
-			case 1: actual_current= getLastPhaseACurrent();
-			break;
+			case 0: actual_current= getLastPhaseACurrent();
+					break;
+			case 1: actual_current= getLastPhaseCCurrent();
+					break;
 			case 2: actual_current= getLastPhaseBCurrent();
-			break;
-			case 3: actual_current= getLastPhaseCCurrent();
-			break;
+					break;
+            case 3: actual_current= getLastPhaseACurrent();
+					break;
+			case 4: actual_current= getLastPhaseCCurrent();
+					break;
+			case 5: actual_current= getLastPhaseBCurrent();
+					break;
 		}
 		if(((actual_current > tobe_current) && (duty_cycle > 0)) || actual_current > 42)
 		{
@@ -96,7 +102,7 @@ void set_new_dutycycle()
 		setPWMDutyCycle(duty_cycle);
 		newData = 0;
 	}
-	
+
 }
 
 void new_data_available(void)

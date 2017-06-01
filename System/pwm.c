@@ -259,7 +259,7 @@ void changePhaseState(uint8_t newPhaseState)
     PWM_LS_B_OFF;
     PWM_LS_C_OFF;
 
-    switch(state)
+    switch(newPhaseState)
     {
         case 0:
             PWM_HS_A_ON;

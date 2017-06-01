@@ -6,9 +6,9 @@
 
 #include <stdint.h>
 
-#define TIMING 10
+#define TIMING 20
 //#define P_DIVIDER 200
-#define P_DIVIDER 256
+#define P_DIVIDER 128
 #define I_DIVIDER 256
 
  static uint8_t phasestate;
@@ -26,7 +26,7 @@ void timeMeassurementOverflow(void);
 void switchPhases(void);
 void switchPhaseAndManageComps(void);
 
-void startSynchronize(uint8_t phasestate_init, uint16_t time60deg_init)
+void startSynchronize(uint8_t phasestate_init, uint16_t time60deg_init, void (*tooSlowCallback)(void))
 {
     phasestate = phasestate_init;
     time60deg = time60deg_init;
@@ -35,7 +35,7 @@ void startSynchronize(uint8_t phasestate_init, uint16_t time60deg_init)
     registerVoltageZeroCrossingListenerPhaseB(&zeroCrossingListenerPhaseB);
     registerVoltageZeroCrossingListenerPhaseC(&zeroCrossingListenerPhaseC);
 
-    setPWMDutyCycle(20);
+    setPWMDutyCycle(40);
 
     switchPhases();
 }
@@ -97,7 +97,7 @@ void zeroCrossingCalculations()
         setEnableCompB(0);
         setEnableCompC(0);
 
-        /*uint16_t targetTime;
+        uint16_t targetTime;
         targetTime = (time60deg*(30-TIMING))/60;
 
         // PI Controller
@@ -111,7 +111,7 @@ void zeroCrossingCalculations()
         //controllerOut = (fault/P_DIVIDER + fault_I/I_DIVIDER);
         controllerOut = fault / P_DIVIDER;
 
-        time60deg = time60deg - controllerOut;*/
+        time60deg = time60deg - controllerOut;
 
         #ifdef MEASURE
         //bufferIn(pDataBuffer, time60deg, measuredTime, fault, controllerOut);

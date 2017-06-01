@@ -31,7 +31,7 @@ void startSpeedUp(void (*startupFinishedCallback)(uint8_t, uint16_t))
     setEnableCompB(0);
     setEnableCompC(0);
 
-    setPWMDutyCycle(20);
+    setPWMDutyCycle(30);
 
     time60deg = TIME_60DEG_SPEED_UP_START; //us
     speedUpFrequenz();

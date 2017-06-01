@@ -19,6 +19,13 @@ volatile uint32_t time60deg = 0;
 BufferDriveData dataBuffer  = {{{0}}, 0, 0};
 BufferDriveData *pDataBuffer = &dataBuffer;
 
+typedef enum {
+            free_running,
+            fix_commutated,
+            controlled
+            } DriveState;
+static DriveState state = free_running;
+
 // functions
 void startupFinishedCallback(uint8_t phasestate, uint16_t time60deg);
 void measurementDataAvailable();
@@ -84,9 +91,19 @@ int main(void)
     return 0;
 }
 
+DriveState getDriveState()
+{
+    return state;
+}
+
+// statemachine extern inputs
+void startDrive()
+{
+}
+
 void startupFinishedCallback(uint8_t phasestate, uint16_t time60deg)
 {
-    startSynchronize(phasestate, time60deg);
+    startSynchronize(phasestate, time60deg,0);
 }
 
 void measurementDataAvailable()

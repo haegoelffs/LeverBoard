@@ -189,7 +189,7 @@ typedef enum {
             reference3_conv,
             reference4_conv
             } State;
-State state = no_conv;
+static State state = no_conv;
 
 int8_t lastS01Current = 0;
 int8_t lastS02Current = 0;
