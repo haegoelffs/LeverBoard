@@ -1,94 +1,39 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
-#include <avr/delay.h>
 #include <stdlib.h>
 #include <stdint.h>
 
 #include "System/system.h"
 #include "System/logger.h"
-#include "startup.h"
-#include "synchronize.h"
+#include "fixCommutated.h"
+#include "controlled.h"
 #include "System/ringbufferDriveData.h"
+#include "drive.h"
 
 #define MEASURE
 
+#define P_DIVIDER 128
+#define I_DIVIDER 256
+
 // variables
-volatile uint8_t phasestate = 0;
-volatile uint32_t time60deg = 0;
+uint8_t phasestate = 0;
+uint32_t time60deg = 0;
+int8_t powerlevel = 0;
 
-BufferDriveData dataBuffer  = {{{0}}, 0, 0};
-BufferDriveData *pDataBuffer = &dataBuffer;
-
-typedef enum {
-            free_running,
-            fix_commutated,
-            controlled
-            } DriveState;
 static DriveState state = free_running;
 
-// functions
+// internal functions
+static void calculatePower(void);
+
+// callback functions
 void startupFinishedCallback(uint8_t phasestate, uint16_t time60deg);
-void measurementDataAvailable();
+void measurementDataAvailableCallback(char phaseLastMeasurement);
+void tooSlowForControlledCallback();
 
-int main(void)
+void initDrive(void)
 {
-    // initialization-------------------------------------------------------------------
-    initUART();
-    writeNewLine();
-    logMsgLn("__Starting DRIVE tester__");
-
-    initGPIOs();
-    initTimers();
-    initComp();
-    initPWM();
-    //initSPI();
-    initAnalog();
-
-    logMsgLn("Enable global interrupts...");
-    sei();
-
-    logMsgLn("Enable bridge driver...");
-    enableBridgeDriver(1);
-    setDC_cal(1);
-
-    //setPowerLED();
-    //setLEDsBatteryPower(2);
-
-    registerMeasurementDataAvailableListener(&measurementDataAvailable);
-
-    #ifdef MEASURE
-    logMsgLn("Drive in measure mode");
-    #endif // MEASURE
-
-    startSpeedUp(&startupFinishedCallback);
-
-    while(1)
-    {
-        #ifdef MEASURE
-        int16_t var1, var2, var3, var4;
-
-        if(bufferOut(pDataBuffer,&var1, &var2, &var3 ,&var4))
-        {
-            logSignedInt(var1, 5);
-            logMsg(" ");
-            logSignedInt(var2, 5);
-            logMsg(" ");
-            logSignedInt(var3, 5);
-            logMsg(" ");
-            logSignedInt(var4, 5);
-            writeNewLine();
-        }
-        #endif // MEASURE
-
-        /*spi_readStatusRegisters_BLOCKING();
-
-        logNamedUnsignedInt("Status 1", getLastStatusRegister1Value(), 15);
-        writeNewLine();
-        logNamedUnsignedInt("Status 2", getLastStatusRegister2Value(), 15);
-        writeNewLine();*/
-    }
-
-    return 0;
+    logMsgLn("init drive...");
+    registerMeasurementDataAvailableListener(&measurementDataAvailableCallback);
 }
 
 DriveState getDriveState()
@@ -96,17 +41,83 @@ DriveState getDriveState()
     return state;
 }
 
-// statemachine extern inputs
-void startDrive()
+void setPowerLevel(int8_t newPowerlevel)
+{
+    switch(state)
+        {
+            case free_running:
+            if(newPowerlevel > 0)
+            {
+                // start with full power
+                setPWMDutyCycle(25);
+                enableBridgeDriver(1);
+                startSpeedUp(&startupFinishedCallback);
+            }
+
+            break;
+
+            case fix_commutated:
+            break;
+
+            case controlled:
+            powerlevel = newPowerlevel;
+            break;
+        }
+}
+
+static void calculatePower(void)
 {
 }
 
 void startupFinishedCallback(uint8_t phasestate, uint16_t time60deg)
 {
-    startSynchronize(phasestate, time60deg,0);
+    state = controlled;
+    setPWMDutyCycle(45);
+    startControlled(phasestate, time60deg+100, &tooSlowForControlledCallback);
 }
 
-void measurementDataAvailable()
+void measurementDataAvailableCallback(char phaseLastMeasurement)
 {
-    bufferIn(pDataBuffer, getLastPhaseACurrent(), getLastPhaseBCurrent(), getLastPhaseCCurrent(), getLastBattery());
+    static char duty_cycle = 35;
+
+    #ifdef MEASURE
+    int8_t actual_current = 0;
+    switch(phaseLastMeasurement)
+    {
+        case 'A':
+        actual_current = getLastPhaseACurrent();
+        break;
+
+        case 'B':
+        actual_current = getLastPhaseBCurrent();
+        break;
+
+        default:
+        break;
+    }
+
+    bufferIn(pDataBuffer, actual_current, getLastBattery(), phaseLastMeasurement, duty_cycle);
+    #endif // MEASURE
+
+    actual_current = (128-actual_current);
+	char tobe_current = 50;
+
+    if(((actual_current > tobe_current) && (duty_cycle > 0)) || actual_current > 85)
+		{
+			--duty_cycle;
+		}
+		else if ((actual_current < tobe_current && (duty_cycle < 100)) || actual_current < 85)
+		{
+			++duty_cycle;
+		}
+		setPWMDutyCycle(duty_cycle);
+}
+
+void tooSlowForControlledCallback()
+{
+    // leave controlled
+    stopControlled();
+    enableBridgeDriver(0);
+    setPWMDutyCycle(0);
+    state = free_running;
 }

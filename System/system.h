@@ -57,8 +57,8 @@ uint32_t getTime();
 
 // analog values
 void initAnalog();
-int8_t startMeasureProcedure();
-void registerMeasurementDataAvailableListener(void (*listener)(void));
+int8_t startMeasureProcedure(char newPhaseToMeasure);
+void registerMeasurementDataAvailableListener(void (*listener)(char phaseLastCurrentMeassure));
 
 char readBatteryVoltage();
 char readPhaseCurrnet(char phase); //value between 0 and 42, where 42 stands for 42 Ampére
@@ -68,9 +68,8 @@ char readPhaseCurrnet(char phase); //value between 0 and 42, where 42 stands for
 uint8_t readInterfaceSensorsVoltage(char sensor);
 uint8_t getLastHallSensorNoseVoltage();
 uint8_t getLastHallSensorTailVoltage();
-int8_t getLastPhaseACurrent();
-int8_t getLastPhaseBCurrent();
-int8_t getLastPhaseCCurrent();
+uint8_t getLastPhaseACurrent();
+uint8_t getLastPhaseBCurrent();
 uint8_t getLastBattery();
 
 char readInterfaceSensorsVoltageBLOCKING(char sensor);

@@ -191,9 +191,8 @@ typedef enum {
             } State;
 static State state = no_conv;
 
-int8_t lastS01Current = 0;
-int8_t lastS02Current = 0;
-int8_t lastS03Current = 0;
+uint8_t lastS01Current = 0;
+uint8_t lastS02Current = 0;
 
 uint8_t lastHallSensorNose = 0;
 uint8_t lastHallSensorTail = 0;
@@ -205,7 +204,8 @@ uint8_t lastReference2 = 0;
 uint8_t lastReference3 = 0;
 uint8_t lastReference4 = 0;
 
-static void (*measurementDataAvailableListener)(void);
+static void (*measurementDataAvailableListener)(char phaseLastCurrentMeassure);
+static char phaseToMeasure;
 
 // functions
 void proceedNextMeasure();
@@ -218,17 +218,20 @@ void initAnalog()
     ADC_CONTROL_A |= ADC_CONTROL_A_value;
     ADC_0TO7_DIGITAL_IO_DISABLE_REGISTER |= ADC_0TO7_DIGITAL_IO_DISABLE_REGISTER_value;
     ADC_8TO15_DIGITAL_IO_DISABLE_REGISTER |= ADC_8TO15_DIGITAL_IO_DISABLE_REGISTER_value;
+
+    startMeasureProcedure(0); // init modules (first conversion takes longer)
 }
 
-void registerMeasurementDataAvailableListener(void (*listener)(void))
+void registerMeasurementDataAvailableListener(void (*listener)(char phaseLastCurrentMeassure))
 {
     measurementDataAvailableListener = listener;
 }
 
-int8_t startMeasureProcedure()
+int8_t startMeasureProcedure(char newPhaseToMeasure)
 {
     if(state == no_conv)
     {
+        phaseToMeasure = newPhaseToMeasure;
         proceedNextMeasure();
         return 0;
     }
@@ -242,8 +245,24 @@ void proceedNextMeasure()
     {
         case no_conv:
             // select & start next measure
-            state = hall_sensor_nose_conv;
-            ADC_SELECT_HALL_NOSE;
+            switch(phaseToMeasure)
+            {
+                case 'A':
+                state = current_s01_conv;
+                ADC_SELECT_CURRENT_S01;
+                break;
+
+                case 'B':
+                state = current_s02_conv;
+                ADC_SELECT_CURRENT_S02;
+                break;
+
+                default:
+                state = hall_sensor_nose_conv;
+                ADC_SELECT_HALL_NOSE;
+                break;
+            }
+
             ADC_START;
         break;
 
@@ -272,35 +291,45 @@ void proceedNextMeasure()
             lastBattery = ADC_DATA;
 
             // select & start next measure
-            state = current_s01_conv;
-            ADC_SELECT_CURRENT_S01;
-            ADC_START;
+            state = no_conv;
+
+            if(measurementDataAvailableListener != 0)
+            {
+                measurementDataAvailableListener(phaseToMeasure);
+            }
         break;
 
         case current_s01_conv:
             // store last data
-            lastS01Current = ADC_DATA-PHASE_CURRENT_OFFSET;
+            lastS01Current = ADC_DATA;
+
+            /** calculation:
+            V_ref = 5V
+            G = 10
+            R_shunt = 3mOhm
+
+            V_0 = V_ref/2 -G*(V_shuntN - V_shuntP) [datasheet p.16]
+            deltaV = (V_shuntN - V_shuntP) = (V_0 - V_ref/2)/(-G) = (V_ref/2 - V_0)/G
+
+            I = deltaV/R_shunt = (V_ref - V_0)/(G*R_shunt)
+
+
+            **/
 
             // select & start next measure
-            state = current_s02_conv;
-            ADC_SELECT_CURRENT_S02;
+            state = hall_sensor_nose_conv;
+            ADC_SELECT_HALL_NOSE;
             ADC_START;
         break;
 
         case current_s02_conv:
             // store last data
-            lastS02Current = ADC_DATA-PHASE_CURRENT_OFFSET;
-
-            // calculate current in third phase
-            lastS03Current = -lastS01Current-lastS02Current;
+            lastS02Current = ADC_DATA;
 
             // select & start next measure
-            state = no_conv;
-
-            if(measurementDataAvailableListener != 0)
-            {
-                measurementDataAvailableListener();
-            }
+            state = hall_sensor_nose_conv;
+            ADC_SELECT_HALL_NOSE;
+            ADC_START;
         break;
 
         default:
@@ -324,19 +353,15 @@ uint8_t getLastHallSensorTailVoltage()
     return lastHallSensorTail;
 }
 
-int8_t getLastPhaseACurrent()
+uint8_t getLastPhaseACurrent()
 {
+    //=(128-lastS01Current)/(10)
     return lastS01Current;
 }
 
-int8_t getLastPhaseBCurrent()
+uint8_t getLastPhaseBCurrent()
 {
     return lastS02Current;
-}
-
-int8_t getLastPhaseCCurrent()
-{
-    return lastS03Current;
 }
 
 uint8_t getLastBattery()

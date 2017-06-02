@@ -4,6 +4,9 @@
 #define LOG_ERROR
 #define LOG_INFO
 
+#include "ringbufferDriveData.h"
+extern BufferDriveData *pDataBuffer;
+
 void logMsg(char *msg);
 void logMsgLn(char *msg);
 void logVar(char *name, int var, char stringLenght);

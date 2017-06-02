@@ -8,16 +8,14 @@ version: 0.1
 
 #include <stdint.h>
 
-void initDrive();          //Initialices the Zerocrossing. 
-void set_time1(char edge);	// Mosfet timing
-void set_time2(char edge);	// Mosfet timing
-void set_phase_state_s();	// Mosfet timing
-void set_phase_state();     // Mosfet timing
-void timeroverflow1();     //Is called when the timer has an overflow. Does Nothing
-void disableCompA();
-void enableCompA();
-char give_actualcurrent(char phase);  //gives the current of the active phase
-char setPWMDutyCycle_dr(char dutyCycle, char current); //Sets the Pwm duty cycle {0,...,100}
+typedef enum {
+            free_running,
+            fix_commutated,
+            controlled
+            } DriveState;
 
+void initDrive(void);
+
+void setPowerLevel(int8_t power);
 
 #endif // DRIVE_H_INCLUDED
