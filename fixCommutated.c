@@ -1,14 +1,14 @@
 
 #include "System/system.h"
 #include "System/logger.h"
-#include "startup.h"
+#include "fixCommutated.h"
 
 #define GRADIENT_PERCENT_SPEED_UP ((uint8_t)2)
 //#define TIME_60DEG_SPEED_UP_START ((uint16_t)11000)
 #define TIME_60DEG_SPEED_UP_START ((uint16_t)8000)
 //#define TIME_60DEG_SPEED_UP_END 2040
 #define TIME_60DEG_SPEED_UP_END 2000
-#define STEPSIZE 5
+#define STEPSIZE 10
 
 uint8_t phasestate;
 uint16_t time60deg;
@@ -30,8 +30,6 @@ void startSpeedUp(void (*startupFinishedCallback)(uint8_t, uint16_t))
     setEnableCompA(0);
     setEnableCompB(0);
     setEnableCompC(0);
-
-    setPWMDutyCycle(20);
 
     time60deg = TIME_60DEG_SPEED_UP_START; //us
     speedUpFrequenz();
@@ -105,6 +103,8 @@ avrdude: safemode: efuse reads as FD
 avrdude: safemode: Fuses OK (E:FD, H:D8, L:FF)
 avrdude: safemode: Fuses OK (E:FD, H:D8, L:FF)
 avrdude: safemode: Fuses OK (E:FD, H:D8, L:FF)
+avrdude: safemode: Fuses OK (E:FD, H:D8, L:FF)
+
 
 
 avrdude -c dragon_isp -P usb -p atmega2560 -U lfuse:w:0xFF:m -U hfuse:w:0xD8:m -U efuse:w:0xFD:m

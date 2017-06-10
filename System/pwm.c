@@ -59,19 +59,19 @@ WGM3:0 = 1010
 #define PWM_LS_CONTROLL_REGISTER_A TCCR5A
 #define PWM_LS_CONTROLL_REGISTER_A_value ((1<<COM5A1) | (1<<COM5A0) | (1<<COM5B1) | (1<<COM5B0) | (1<<COM5C1) | (1<<COM5C0) | (1<<WGM51) | (0<<WGM50))
 
-/*#define PWM_HS_A_OFF (PWM_HS_CONTROLL_REGISTER_A &= ~((1<<COM4A1) | (1<<COM4A0)))
+#define PWM_HS_A_OFF (PWM_HS_CONTROLL_REGISTER_A &= ~((1<<COM4A1) | (1<<COM4A0)))
 #define PWM_HS_A_ON (PWM_HS_CONTROLL_REGISTER_A |= ((1<<COM4A1) | (1<<COM4A0)))
 #define PWM_HS_B_OFF (PWM_HS_CONTROLL_REGISTER_A &= ~((1<<COM4B1) | (1<<COM4B0)))
 #define PWM_HS_B_ON (PWM_HS_CONTROLL_REGISTER_A |= ((1<<COM4B1) | (1<<COM4B0)))
 #define PWM_HS_C_OFF (PWM_HS_CONTROLL_REGISTER_A &= ~((1<<COM4C1) | (1<<COM4C0)))
-#define PWM_HS_C_ON (PWM_HS_CONTROLL_REGISTER_A |= ((1<<COM4C1) | (1<<COM4C0)))*/
+#define PWM_HS_C_ON (PWM_HS_CONTROLL_REGISTER_A |= ((1<<COM4C1) | (1<<COM4C0)))
 
-#define PWM_LS_C_OFF (PWM_LS_CONTROLL_REGISTER_A &= ~((1<<COM5A1) | (1<<COM5A0)))
+/*#define PWM_LS_C_OFF (PWM_LS_CONTROLL_REGISTER_A &= ~((1<<COM5A1) | (1<<COM5A0)))
 #define PWM_LS_C_ON (PWM_LS_CONTROLL_REGISTER_A |= ((1<<COM5A1) | (1<<COM5A0)))
 #define PWM_LS_B_OFF (PWM_LS_CONTROLL_REGISTER_A &= ~((1<<COM5B1) | (1<<COM5B0)))
 #define PWM_LS_B_ON (PWM_LS_CONTROLL_REGISTER_A |= ((1<<COM5B1) | (1<<COM5B0)))
 #define PWM_LS_A_OFF (PWM_LS_CONTROLL_REGISTER_A &= ~((1<<COM5C1) | (1<<COM5C0)))
-#define PWM_LS_A_ON (PWM_LS_CONTROLL_REGISTER_A |= ((1<<COM5C1) | (1<<COM5C0)))
+#define PWM_LS_A_ON (PWM_LS_CONTROLL_REGISTER_A |= ((1<<COM5C1) | (1<<COM5C0)))*/
 
 /** TCCR1B – Timer/Counter 1 Control Register B p.156
     |7      |6      |5      |4      |3      |2      |1      |0      |
@@ -199,12 +199,19 @@ Flags des entsprechenden Interrupts.
 #define PIN_LS_B_PWM 4
 #define PIN_LS_A_PWM 5
 
-#define PWM_HS_A_OFF (PORT_HS_PWM &= ~(1<<PIN_HS_A_PWM))
+#define PWM_LS_A_OFF (PORT_LS_PWM &= ~(1<<PIN_LS_A_PWM))
+#define PWM_LS_A_ON (PORT_LS_PWM |= (1<<PIN_LS_A_PWM))
+#define PWM_LS_B_OFF (PORT_LS_PWM &= ~(1<<PIN_LS_B_PWM))
+#define PWM_LS_B_ON (PORT_LS_PWM |= (1<<PIN_LS_B_PWM))
+#define PWM_LS_C_OFF (PORT_LS_PWM &= ~(1<<PIN_LS_C_PWM))
+#define PWM_LS_C_ON (PORT_LS_PWM |= (1<<PIN_LS_C_PWM))
+
+/*#define PWM_HS_A_OFF (PORT_HS_PWM &= ~(1<<PIN_HS_A_PWM))
 #define PWM_HS_A_ON (PORT_HS_PWM |= (1<<PIN_HS_A_PWM))
 #define PWM_HS_B_OFF (PORT_HS_PWM &= ~(1<<PIN_HS_B_PWM))
 #define PWM_HS_B_ON (PORT_HS_PWM |= (1<<PIN_HS_B_PWM))
 #define PWM_HS_C_OFF (PORT_HS_PWM &= ~(1<<PIN_HS_C_PWM))
-#define PWM_HS_C_ON (PORT_HS_PWM |= (1<<PIN_HS_C_PWM))
+#define PWM_HS_C_ON (PORT_HS_PWM |= (1<<PIN_HS_C_PWM))*/
 
 
 // INCLUDES:
@@ -216,6 +223,8 @@ Flags des entsprechenden Interrupts.
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
+uint8_t phaseState = 6; // power off all
+
 // pwm
 void initPWM()
 {
@@ -226,16 +235,16 @@ void initPWM()
     TRISTATE_LS_PWM |= ((TRISTATE_OUTPUT<<PIN_LS_A_PWM) | (TRISTATE_OUTPUT<<PIN_LS_B_PWM) | (TRISTATE_OUTPUT<<PIN_LS_C_PWM));
 
     // config timers
-    //PWM_HS_CONTROLL_REGISTER_A |= PWM_HS_CONTROLL_REGISTER_A_value;
-    PWM_LS_CONTROLL_REGISTER_A |= PWM_LS_CONTROLL_REGISTER_A_value;
+    PWM_HS_CONTROLL_REGISTER_A |= PWM_HS_CONTROLL_REGISTER_A_value;
+    //PWM_LS_CONTROLL_REGISTER_A |= PWM_LS_CONTROLL_REGISTER_A_value;
 
-    //PWM_HS_CONTROLL_REGISTER_B |= PWM_HS_CONTROLL_REGISTER_B_value;
-    PWM_LS_CONTROLL_REGISTER_B |= PWM_LS_CONTROLL_REGISTER_B_value;
+    PWM_HS_CONTROLL_REGISTER_B |= PWM_HS_CONTROLL_REGISTER_B_value;
+    //PWM_LS_CONTROLL_REGISTER_B |= PWM_LS_CONTROLL_REGISTER_B_value;
 
-    //PWM_HS_MAX_VALUE_HIGH = (char)(RESOLUTION_PWM>>8);
-    //PWM_HS_MAX_VALUE_LOW = (char)(RESOLUTION_PWM);
-    PWM_LS_MAX_VALUE_HIGH = (char)(RESOLUTION_PWM>>8);
-    PWM_LS_MAX_VALUE_LOW = (char)(RESOLUTION_PWM);
+    PWM_HS_MAX_VALUE_HIGH = (char)(RESOLUTION_PWM>>8);
+    PWM_HS_MAX_VALUE_LOW = (char)(RESOLUTION_PWM);
+    //PWM_LS_MAX_VALUE_HIGH = (char)(RESOLUTION_PWM>>8);
+    //PWM_LS_MAX_VALUE_LOW = (char)(RESOLUTION_PWM);
 }
 
 /** Changes the output channels for the pwm.
@@ -248,7 +257,7 @@ void initPWM()
     state = 5: A heavyside, B lowside
     state > 5: power off all channels
 **/
-void changePhaseState(uint8_t state)
+void changePhaseState(uint8_t newPhaseState)
 {
     PWM_HS_A_OFF;
     PWM_HS_B_OFF;
@@ -257,7 +266,7 @@ void changePhaseState(uint8_t state)
     PWM_LS_B_OFF;
     PWM_LS_C_OFF;
 
-    switch(state)
+    switch(newPhaseState)
     {
         case 0:
             PWM_HS_A_ON;
@@ -292,6 +301,13 @@ void changePhaseState(uint8_t state)
         default:
             break;
     }
+
+    phaseState = newPhaseState;
+}
+
+uint8_t getPhaseState()
+{
+    return phaseState;
 }
 
 /** Sets the dutycycle of the pwm.

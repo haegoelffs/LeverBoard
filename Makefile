@@ -2,7 +2,7 @@
 # (c) Matthias Meier, 24.2.2016
 
 PROJECT = $(shell basename $(shell pwd))
-PROJECT = myDrive
+PROJECT = myMain
 OBJS = $(PROJECT).o System/logger.o \
 System/ringbufferDriveData.o \
 System/timer.o \
@@ -12,8 +12,10 @@ System/gpio.o \
 System/ext_comperator.o \
 System/spi.o \
 System/adc.o \
-startup.o \
-run.o
+myDrive.o \
+fixCommutated.o \
+controlled.o
+
 
 #PROJECT = system_tester_snippet
 #OBJS = $(PROJECT).o System/ringbufferDriveData.o System/logger.o System/timer.o System/uart.o

@@ -23,18 +23,18 @@ uint16_t delta_time = 0;
 char enable = 1;
 
 int main(void)
-{   
+{
 	initGPIOs();
 
 
 	//init variables
-	
+
 	char phaseState;
 	char numPiezo = 0;				//number of times piezo made a noise
 	char numLed = 0;				//number of times LEDs were flashed
 	char actual_current = 0;
 	uint16_t systime = 0;
-	
+
 	// init modules and Hardware
     initINTERFACE();
 	initUART();
@@ -42,14 +42,14 @@ int main(void)
 	initPWM();
 	initComp();
 	sei();					//enable interrupts
-	initTimers();		
+	initTimers();
     initDrive();
 	initSystime();
-	
-	
+
+
     while(1)
     {
-		
+
 		/*
 		//Handle BatteryState
 		char BatteryState = getBatteryState();
@@ -68,12 +68,12 @@ int main(void)
 					if (numPiezo< 1)
 					{
 						systime = setBatteryAlert();
-						++numPiezo;		
+						++numPiezo;
 					}
 					else quitBatteryAlert(systime);
 					numLed = 0;
 					setLEDsBatteryPower(1);
-					
+
 					break;
 			case 2: switchPwmOnOff(1);
 					numLed = 0;
@@ -94,21 +94,27 @@ int main(void)
 					}
 					else quitNoBtreakAlert(systime);
 		}*/
-		
+
 		phaseState = getPhaseState();
 		handle_batteryState(&numLed, &numPiezo, &systime);
 		emergencyShutDown(actual_current);
 		switch (phaseState)
 		{
-			case 1: actual_current= getLastPhaseACurrent();
+			case 0: actual_current= getLastPhaseACurrent();
+					break;
+			case 1: actual_current= getLastPhaseCCurrent();
 					break;
 			case 2: actual_current= getLastPhaseBCurrent();
 					break;
-			case 3: actual_current= getLastPhaseCCurrent();
+            case 3: actual_current= getLastPhaseACurrent();
+					break;
+			case 4: actual_current= getLastPhaseCCurrent();
+					break;
+			case 5: actual_current= getLastPhaseBCurrent();
 					break;
 		}
 		set_new_dutycycle();
-		
+
 	}
 }
-		
+

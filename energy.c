@@ -24,13 +24,13 @@ char getBatteryState()
 	}
 	else if(voltage <= 94) //22V //1.833333
 	{
-		 return 1;		
+		 return 1;
 	}
 	else if (voltage <= 96) //22.5V //1.87 V
 	{
 		return 2;
 	}
-	else if (voltage < 104) 
+	else if (voltage < 104)
 	{
 		return 3;       //24.5 V // 2.041666
 	}
@@ -43,6 +43,7 @@ void handle_batteryState(char* numLed, char* numPiezo, uint16_t* systime)
 	char BatteryState = getBatteryState();
 	switch(BatteryState) {
 		case 0: switchPwmOnOff(0);
+<<<<<<< HEAD
 			if(*numLed < 1)
 			{
 				flashLEDs();
@@ -79,5 +80,43 @@ void handle_batteryState(char* numLed, char* numPiezo, uint16_t* systime)
 			*systime= setNoBreakAlert();
 		}
 		else quitNoBtreakAlert(*systime);
+
+            if(*numLed < 1)
+            {
+                flashLEDs();
+                ++(*numLed) ;
+            }
+            *numPiezo = 0;
+            setLEDsBatteryPower(0);
+            break;
+		case 1: switchPwmOnOff(1);
+            if (numPiezo< 1)
+            {
+                systime = setBatteryAlert();
+                ++(*numPiezo);
+            }
+		else quitBatteryAlert(*systime);
+            numLed = 0;
+            setLEDsBatteryPower(1);
+            break;
+		case 2: switchPwmOnOff(1);
+            *numLed = 0;
+            *numPiezo = 0;
+            setLEDsBatteryPower(2);
+            break;
+		case 3: switchPwmOnOff(1);
+            *numLed = 0;
+            *numPiezo = 0;
+            setLEDsBatteryPower(3);
+            break;
+		case 4: switchPwmOnOff(1);
+            *numLed = 0;
+            setLEDsBatteryPower(4);
+            if (*numPiezo < 1)
+            {
+                *systime= setNoBreakAlert();
+            }
+            else quitNoBtreakAlert(*systime);
+
 	}
 }

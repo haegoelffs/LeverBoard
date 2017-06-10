@@ -1,20 +1,25 @@
 
 #include "System/system.h"
 #include "System/logger.h"
-#include "synchronize.h"
+#include "controlled.h"
 #include "System/ringbufferDriveData.h"
 
 #include <stdint.h>
+#define MEASURE
 
-#define TIMING 5
-#define P_DIVIDER 200
+#define TIMING 20
+//#define P_DIVIDER 200
 //#define P_DIVIDER 128
+#define P_DIVIDER 64
 #define I_DIVIDER 256
+//#define MAX_T_60_DEG 2500
+#define MAX_T_60_DEG 3000
 
- static uint8_t phasestate;
- static uint16_t time60deg;
+static uint8_t phasestate;
+static uint16_t time60deg;
+static uint8_t isActive;
 
- extern BufferDriveData *pDataBuffer;
+static void (*callback)(void);
 
 // functions
 void zeroCrossingListenerPhaseA(char edge);
@@ -26,25 +31,46 @@ void timeMeassurementOverflow(void);
 void switchPhases(void);
 void switchPhaseAndManageComps(void);
 
-void startSynchronize(uint8_t phasestate_init, uint16_t time60deg_init)
+void startControlled(uint8_t phasestate_init, uint16_t time60deg_init, void (*tooSlowCallback)(void))
 {
     phasestate = phasestate_init;
     time60deg = time60deg_init;
+    callback = tooSlowCallback;
 
     registerVoltageZeroCrossingListenerPhaseA(&zeroCrossingListenerPhaseA);
     registerVoltageZeroCrossingListenerPhaseB(&zeroCrossingListenerPhaseB);
     registerVoltageZeroCrossingListenerPhaseC(&zeroCrossingListenerPhaseC);
 
-    setPWMDutyCycle(20);
-
+    isActive = 1;
     switchPhases();
+}
+
+void stopControlled()
+{
+    isActive = 0;
 }
 
 void switchPhases(void)
 {
+    // start current measure before switching phase (max. current in phase)
+    switch(getPhaseState())
+    {
+        case 3:
+        startMeasureProcedure('A');
+        break;
+
+        //case 5:
+        //startMeasureProcedure('B');
+        //break;
+
+        default: // do nothing
+        break;
+    }
+
     phasestate = (phasestate+1)%6;
     changePhaseState(phasestate);
 
+    // handle comperators
     setEnableCompA(0);
     setEnableCompB(0);
     setEnableCompC(0);
@@ -76,15 +102,16 @@ void switchPhases(void)
         break;
     }
 
-    //startMeasureProcedure(); // temp
-
     if(isTimeMeasurementRunning())
     {
         stopTimeMeasurement();
     }
     startTimeMeasurement(&timeMeassurementOverflow);
 
-    startAfterUs(time60deg, &switchPhases);
+    if(isActive)
+    {
+        startAfterUs(time60deg, &switchPhases);
+    }
 }
 
 void zeroCrossingCalculations()
@@ -114,26 +141,30 @@ void zeroCrossingCalculations()
         time60deg = time60deg - controllerOut;
 
         #ifdef MEASURE
-        bufferIn(pDataBuffer, time60deg, measuredTime, fault, controllerOut);
+        //bufferIn(pDataBuffer, 2030, 2030, 2030, 2030);
+        //bufferIn(pDataBuffer, (int16_t)time60deg, (int16_t)measuredTime, fault, 0);
         #endif // MEASURE
+
+        if(time60deg > MAX_T_60_DEG)
+        {
+            // too slow
+            callback();
+        }
     }
 }
 
 void zeroCrossingListenerPhaseA(char edge)
 {
-    //setEnableCompA(0); // disable isr -> interrupt only on first zero crossing
     zeroCrossingCalculations();
 }
 
 void zeroCrossingListenerPhaseB(char edge)
 {
-    //setEnableCompB(0); // disable isr -> interrupt only on first zero crossing
     zeroCrossingCalculations();
 }
 
 void zeroCrossingListenerPhaseC(char edge)
 {
-    //setEnableCompC(0); // disable isr -> interrupt only on first zero crossing
     zeroCrossingCalculations();
 }
 
