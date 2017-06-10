@@ -82,5 +82,6 @@ void handle_batteryState(char* numLed, char* numPiezo, uint16_t* systime)
                 *systime= setNoBreakAlert();
             }
             else quitNoBtreakAlert(*systime);
+
 	}
 }

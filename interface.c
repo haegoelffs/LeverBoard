@@ -16,11 +16,12 @@ void initINTERFACE()
     setPowerLED();
 }
 
+
 uint16_t setNoBreakAlert()
-	{
-		setPiezoSound(1);
-		return getSystimeMs();
-	}
+{
+    setPiezoSound(1);
+    return getSystimeMs();
+}
 
 void quitNoBtreakAlert(	uint16_t sys)
 	{
@@ -31,10 +32,11 @@ void quitNoBtreakAlert(	uint16_t sys)
 		}
 	}
 
- uint16_t setBatteryAlert(){
-		setPiezoSound(1);
-		return getSystimeMs();
-	}
+ uint16_t setBatteryAlert()
+ {
+    setPiezoSound(1);
+    return getSystimeMs();
+}
 
 void quitBatteryAlert(uint16_t sys)
 {
