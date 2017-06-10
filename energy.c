@@ -2,16 +2,18 @@
 last change: 08.5.2017
 version: 0.1
 */
-#include "system.h"
+#include "System/system.h"
 #include "energy.h"
+#include "interface.h"
 #include <avr/io.h>
 
 void emergencyShutDown(char current)
 {
 	if(current > 47)
 	{
-		switchPwmOnOff(0);
+		enableBridgeDriver(0);
 		setNoBreakAlert();
+		while(1);
 	}
 }
 
@@ -41,9 +43,9 @@ char getBatteryState()
 void handle_batteryState(char* numLed, char* numPiezo, uint16_t* systime)
 {
 	char BatteryState = getBatteryState();
-	logUnsignedInt("BatteryState",BatteryState,30);
+
 	switch(BatteryState) {
-		case 0: switchPwmOnOff(0);
+		case 0: enableBridgeDriver(0);
             if(*numLed < 1)
             {
                 flashLEDs();
@@ -52,27 +54,27 @@ void handle_batteryState(char* numLed, char* numPiezo, uint16_t* systime)
             *numPiezo = 0;
             setLEDsBatteryPower(0);
             break;
-		case 1: switchPwmOnOff(1);
-            if (numPiezo< 1)
+		case 1: enableBridgeDriver(1);
+            if (*numPiezo < 1)
             {
-                systime = setBatteryAlert();
+                *systime = setBatteryAlert();
                 ++(*numPiezo);
             }
 		else quitBatteryAlert(*systime);
             numLed = 0;
             setLEDsBatteryPower(1);
             break;
-		case 2: switchPwmOnOff(1);
+		case 2: enableBridgeDriver(1);
             *numLed = 0;
             *numPiezo = 0;
             setLEDsBatteryPower(2);
             break;
-		case 3: switchPwmOnOff(1);
+		case 3: enableBridgeDriver(1);
             *numLed = 0;
             *numPiezo = 0;
             setLEDsBatteryPower(3);
             break;
-		case 4: switchPwmOnOff(1);
+		case 4: enableBridgeDriver(1);
             *numLed = 0;
             setLEDsBatteryPower(4);
             if (*numPiezo < 1)

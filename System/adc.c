@@ -191,8 +191,8 @@ typedef enum {
             } State;
 static State state = no_conv;
 
-uint8_t lastS01Current = 0;
-uint8_t lastS02Current = 0;
+int8_t lastS01Current = 0;
+int8_t lastS02Current = 0;
 
 uint8_t lastHallSensorNose = 0;
 uint8_t lastHallSensorTail = 0;
@@ -301,20 +301,7 @@ void proceedNextMeasure()
 
         case current_s01_conv:
             // store last data
-            lastS01Current = ADC_DATA;
-
-            /** calculation:
-            V_ref = 5V
-            G = 10
-            R_shunt = 3mOhm
-
-            V_0 = V_ref/2 -G*(V_shuntN - V_shuntP) [datasheet p.16]
-            deltaV = (V_shuntN - V_shuntP) = (V_0 - V_ref/2)/(-G) = (V_ref/2 - V_0)/G
-
-            I = deltaV/R_shunt = (V_ref - V_0)/(G*R_shunt)
-
-
-            **/
+            lastS01Current = (128 - ADC_DATA);
 
             // select & start next measure
             state = hall_sensor_nose_conv;
@@ -324,7 +311,7 @@ void proceedNextMeasure()
 
         case current_s02_conv:
             // store last data
-            lastS02Current = ADC_DATA;
+            lastS02Current = (128 - ADC_DATA);
 
             // select & start next measure
             state = hall_sensor_nose_conv;
@@ -353,13 +340,12 @@ uint8_t getLastHallSensorTailVoltage()
     return lastHallSensorTail;
 }
 
-uint8_t getLastPhaseACurrent()
+int8_t getLastPhaseACurrent()
 {
-    //=(128-lastS01Current)/(10)
     return lastS01Current;
 }
 
-uint8_t getLastPhaseBCurrent()
+int8_t getLastPhaseBCurrent()
 {
     return lastS02Current;
 }
@@ -389,7 +375,7 @@ uint8_t readInterfaceSensorsVoltage(char sensor)
 // blocking functions
 // sensor 0 = Front
 // sensor 1 = Back
-char readInterfaceSensorsVoltageBLOCKING(char sensor)
+void readInterfaceSensorsVoltageBLOCKING(char sensor)
 {
     switch(sensor)
     {
@@ -408,7 +394,16 @@ char readInterfaceSensorsVoltageBLOCKING(char sensor)
     {}
     ADC_RESET_FINISHED_FLAG;
 
-    return ADC_DATA;
+    switch(sensor)
+    {
+        case 0:
+        lastHallSensorNose = ADC_DATA;
+        break;
+
+        case 1:
+        lastHallSensorTail = ADC_DATA;
+        break;
+    }
 }
 
 char readReference1BLOCKING(void)

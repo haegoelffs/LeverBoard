@@ -53,18 +53,9 @@ void stopControlled()
 void switchPhases(void)
 {
     // start current measure before switching phase (max. current in phase)
-    switch(getPhaseState())
+    if(getPhaseState() == 3)
     {
-        case 3:
         startMeasureProcedure('A');
-        break;
-
-        //case 5:
-        //startMeasureProcedure('B');
-        //break;
-
-        default: // do nothing
-        break;
     }
 
     phasestate = (phasestate+1)%6;

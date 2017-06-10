@@ -7,10 +7,10 @@ version: 0.1
 #define INTERFACE_H_INCLUDED
 
 void initINTERFACE();                   //Initialices the Interface
-void setNoBreakAlert();					//Turns piezo on
+uint16_t setNoBreakAlert();					//Turns piezo on
 void quitNoBtreakAlert();				//Turns piezo off
 
-void setBatteryAlert();					//Turns piezo on
+uint16_t setBatteryAlert();					//Turns piezo on
 void quitBatteryAlert();				//Turns piezo off
 void timeroverflow2();					//Called when timer2 has an overflow. Does nothing
 void flashLEDs();						//Flashes all 4 Energy LEDs

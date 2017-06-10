@@ -3,8 +3,9 @@ last change: 08.5.2017
 version: 0.1
 */
 
-#include "system.h"
+#include "System/system.h"
 #include "interface.h"
+#include "System/logger.h"
 #include <avr/io.h>
 #include <util/delay.h>
 
@@ -15,7 +16,7 @@ void initINTERFACE()
     setPowerLED();
 }
 
-uint16_t void setNoBreakAlert()
+uint16_t setNoBreakAlert()
 	{
 		setPiezoSound(1);
 		return getSystimeMs();
@@ -30,7 +31,7 @@ void quitNoBtreakAlert(	uint16_t sys)
 		}
 	}
 
- uint16_t void setBatteryAlert(){
+ uint16_t setBatteryAlert(){
 		setPiezoSound(1);
 		return getSystimeMs();
 	}
@@ -46,7 +47,8 @@ void quitBatteryAlert(uint16_t sys)
 
 void flashLEDs()
 {
-	for(char i = 0; i < 10; ++i)
+    char i;
+	for(i = 0; i < 10; ++i)
 	setLEDsBatteryPower(4);
 	_delay_ms(1000);
 	setLEDsBatteryPower(0);
@@ -55,7 +57,6 @@ void flashLEDs()
 
 void set_new_dutycycle()
 {
-	static char duty_cycle;
 	char front = getLastHallSensorNoseVoltage();	//Hallsensor front
 	char tail =  getLastHallSensorTailVoltage();	   //Hallsensor tail
 	char delta_sensors;
@@ -71,7 +72,11 @@ void set_new_dutycycle()
 	{
 		tobe_current = (delta_sensors * 42)/81;
 	}
-	registerMeasurementDataAvailableListener(&new_data_available);
+
+	logNamedUnsignedInt("tobe current", tobe_current, 20);
+	writeNewLine();
+
+	/*registerMeasurementDataAvailableListener(&new_data_available);
 	if (newData)
 	{
 		char actual_current;
@@ -101,7 +106,7 @@ void set_new_dutycycle()
 		}
 		setPWMDutyCycle(duty_cycle);
 		newData = 0;
-	}
+	}*/
 
 }
 

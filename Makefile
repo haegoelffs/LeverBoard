@@ -12,8 +12,12 @@ System/gpio.o \
 System/ext_comperator.o \
 System/spi.o \
 System/adc.o \
+System/systime.o \
+energy.o \
+interface.o \
 myDrive.o \
 fixCommutated.o \
+freeRunning.o \
 controlled.o
 
 

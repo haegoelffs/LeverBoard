@@ -68,11 +68,11 @@ char readPhaseCurrnet(char phase); //value between 0 and 42, where 42 stands for
 uint8_t readInterfaceSensorsVoltage(char sensor);
 uint8_t getLastHallSensorNoseVoltage();
 uint8_t getLastHallSensorTailVoltage();
-uint8_t getLastPhaseACurrent();
-uint8_t getLastPhaseBCurrent();
+int8_t getLastPhaseACurrent();
+int8_t getLastPhaseBCurrent();
 uint8_t getLastBattery();
 
-char readInterfaceSensorsVoltageBLOCKING(char sensor);
+void readInterfaceSensorsVoltageBLOCKING(char sensor);
 
 char readReference1BLOCKING();
 char readReference2BLOCKING();
