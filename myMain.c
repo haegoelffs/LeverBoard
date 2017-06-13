@@ -66,7 +66,7 @@ int main(void)
         writeNewLine();*/
 
 		handle_batteryState(&numLed, &numPiezo, &systime);
-		emergencyShutDown(getLastPhaseACurrent());
+		//emergencyShutDown(getLastPhaseACurrent());
 		set_new_dutycycle();
     }
 

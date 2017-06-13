@@ -259,6 +259,8 @@ void proceedNextMeasure()
 
                 default:
                 state = hall_sensor_nose_conv;
+                lastS01Current = 0;
+                lastS01Current = 0;
                 ADC_SELECT_HALL_NOSE;
                 break;
             }

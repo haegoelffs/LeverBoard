@@ -16,6 +16,8 @@ uint16_t time60deg;
 static volatile uint32_t timeRamp = 0;
 static volatile uint8_t cnt = 0;
 
+static uint8_t isActive;
+
 void (*callback)(uint8_t, uint16_t);
 
 // function declarations
@@ -24,8 +26,9 @@ void switchPhase(void);
 
 void startSpeedUp(void (*startupFinishedCallback)(uint8_t, uint16_t))
 {
-    logMsgLn("Start speed up engine...");
+    isActive = 1;
     callback = startupFinishedCallback;
+    enableBridgeDriver(1);
 
     setEnableCompA(0);
     setEnableCompB(0);
@@ -35,18 +38,24 @@ void startSpeedUp(void (*startupFinishedCallback)(uint8_t, uint16_t))
     speedUpFrequenz();
 }
 
-void switchPhase(void)
+void stopSpeedUp()
 {
-    phasestate = (phasestate+1)%6;
-    changePhaseState(phasestate);
+    isActive = 0;
 }
 
 void speedUpFrequenz(void)
 {
-    switchPhase();
+    // start current measure before switching phase (max. current in phase)
+    if(getPhaseState() == 3)
+    {
+        startMeasureProcedure('A');
+    }
+
+    // switch phase
+    phasestate = (phasestate+1)%6;
+    changePhaseState(phasestate);
 
     cnt++;
-
     if(cnt >= STEPSIZE)
     {
         time60deg = (TIME_60DEG_SPEED_UP_START - timeRamp*GRADIENT_PERCENT_SPEED_UP/100);
@@ -54,7 +63,7 @@ void speedUpFrequenz(void)
         cnt = 0;
     }
 
-    if(time60deg < TIME_60DEG_SPEED_UP_END)
+    if(time60deg < TIME_60DEG_SPEED_UP_END || !isActive)
     {
         callback(phasestate, time60deg);
     }

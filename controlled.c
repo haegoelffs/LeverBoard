@@ -139,7 +139,7 @@ void zeroCrossingCalculations()
         if(time60deg > MAX_T_60_DEG)
         {
             // too slow
-            callback();
+            stopControlled();
         }
     }
 }

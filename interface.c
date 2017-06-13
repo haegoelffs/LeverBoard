@@ -5,9 +5,15 @@ version: 0.1
 
 #include "System/system.h"
 #include "interface.h"
+#include "drive.h"
 #include "System/logger.h"
 #include <avr/io.h>
 #include <util/delay.h>
+
+#define TOLERANCE_HALL_SENS_ZERO_POSITION 25 // 0.5V
+#define MAX_HALL_SENS 30
+
+#define MAX_PWR_LEVEL 60
 
 static char newData;
 
@@ -24,13 +30,13 @@ uint16_t setNoBreakAlert()
 }
 
 void quitNoBtreakAlert(	uint16_t sys)
-	{
-		uint16_t sys2 = getSystimeMs();
-		if ((sys2-sys) > 2000)
-		{
-			setPiezoSound(0);
-		}
-	}
+{
+    uint16_t sys2 = getSystimeMs();
+    if ((sys2-sys) > 2000)
+    {
+        setPiezoSound(0);
+    }
+}
 
  uint16_t setBatteryAlert()
  {
@@ -68,53 +74,20 @@ void set_new_dutycycle()
 		delta_sensors = front - tail;
 	}
 	else delta_sensors = 0;
-	if((delta_sensors < 25)) tobe_current = 0;
-	if (delta_sensors > 81) tobe_current = 42;
+	if((delta_sensors < TOLERANCE_HALL_SENS_ZERO_POSITION)) tobe_current = 0;
+	if (delta_sensors > MAX_HALL_SENS) tobe_current = MAX_PWR_LEVEL;
 	else
 	{
-		tobe_current = (delta_sensors * 42)/81;
+		tobe_current = (delta_sensors * MAX_PWR_LEVEL)/MAX_HALL_SENS;
 	}
 
-	logNamedUnsignedInt("tobe current", tobe_current, 20);
+	/*logNamedUnsignedInt("delta_sensor", delta_sensors, 20);
 	writeNewLine();
 
-	/*registerMeasurementDataAvailableListener(&new_data_available);
-	if (newData)
-	{
-		char actual_current;
-		char phaseState = getPhaseState();
-		switch (phaseState)
-		{
-			case 0: actual_current= getLastPhaseACurrent();
-					break;
-			case 1: actual_current= getLastPhaseCCurrent();
-					break;
-			case 2: actual_current= getLastPhaseBCurrent();
-					break;
-            case 3: actual_current= getLastPhaseACurrent();
-					break;
-			case 4: actual_current= getLastPhaseCCurrent();
-					break;
-			case 5: actual_current= getLastPhaseBCurrent();
-					break;
-		}
-		if(((actual_current > tobe_current) && (duty_cycle > 0)) || actual_current > 42)
-		{
-			--duty_cycle;
-		}
-		else if ((actual_current < tobe_current && (duty_cycle < 100)) || actual_current < 42)
-		{
-			++duty_cycle;
-		}
-		setPWMDutyCycle(duty_cycle);
-		newData = 0;
-	}*/
+	logNamedUnsignedInt("tobe current", tobe_current, 20);
+	writeNewLine();*/
 
-}
-
-void new_data_available(void)
-{
-	newData = 1;
+	setPowerLevel(tobe_current);
 }
 
 void timeroverflow2()

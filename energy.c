@@ -37,7 +37,6 @@ char getBatteryState()
 		return 3;       //24.5 V // 2.041666
 	}
 	else return 4;	    //smaller/equal  25 V //2.08 V
-
 }
 
 void handle_batteryState(char* numLed, char* numPiezo, uint16_t* systime)
@@ -45,7 +44,7 @@ void handle_batteryState(char* numLed, char* numPiezo, uint16_t* systime)
 	char BatteryState = getBatteryState();
 
 	switch(BatteryState) {
-		case 0: enableBridgeDriver(0);
+		case 0:
             if(*numLed < 1)
             {
                 flashLEDs();
@@ -53,8 +52,9 @@ void handle_batteryState(char* numLed, char* numPiezo, uint16_t* systime)
             }
             *numPiezo = 0;
             setLEDsBatteryPower(0);
+            setPiezoSound(0);
             break;
-		case 1: enableBridgeDriver(1);
+		case 1:
             if (*numPiezo < 1)
             {
                 *systime = setBatteryAlert();
@@ -64,23 +64,27 @@ void handle_batteryState(char* numLed, char* numPiezo, uint16_t* systime)
             numLed = 0;
             setLEDsBatteryPower(1);
             break;
-		case 2: enableBridgeDriver(1);
+		case 2:
             *numLed = 0;
             *numPiezo = 0;
             setLEDsBatteryPower(2);
+            setPiezoSound(0);
             break;
-		case 3: enableBridgeDriver(1);
+		case 3:
             *numLed = 0;
             *numPiezo = 0;
             setLEDsBatteryPower(3);
+            setPiezoSound(0);
             break;
-		case 4: enableBridgeDriver(1);
+		case 4:
             *numLed = 0;
             setLEDsBatteryPower(4);
             if (*numPiezo < 1)
             {
                 *systime= setNoBreakAlert();
+                ++(*numPiezo);
             }
+
             else quitNoBtreakAlert(*systime);
 
 	}
