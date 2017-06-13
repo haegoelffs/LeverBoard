@@ -25,6 +25,7 @@ int main(void)
     initTimers();
     initComp();
     initPWM();
+    
     //initSPI();
     initAnalog();
     initSystime();
@@ -44,26 +45,7 @@ int main(void)
 
     while(1)
     {
-        /*int16_t var1, var2, var3, var4;
-
-        if(bufferOut(pDataBuffer,&var1, &var2, &var3 ,&var4))
-        {
-            logSignedInt(var1, 5);
-            logMsg(" ");
-            logSignedInt(var2, 5);
-            logMsg(" ");
-            logSignedInt(var3, 5);
-            logMsg(" ");
-            logSignedInt(var4, 5);
-            writeNewLine();
-        }*/
-
-        /*spi_readStatusRegisters_BLOCKING();
-
-        logNamedUnsignedInt("Status 1", getLastStatusRegister1Value(), 15);
-        writeNewLine();
-        logNamedUnsignedInt("Status 2", getLastStatusRegister2Value(), 15);
-        writeNewLine();*/
+        
 
 		handle_batteryState(&numLed, &numPiezo, &systime);
 		//emergencyShutDown(getLastPhaseACurrent());

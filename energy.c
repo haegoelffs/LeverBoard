@@ -1,7 +1,3 @@
-/*
-last change: 08.5.2017
-version: 0.1
-*/
 #include "System/system.h"
 #include "energy.h"
 #include "interface.h"
@@ -16,6 +12,12 @@ void emergencyShutDown(char current)
 		while(1);
 	}
 }
+
+
+
+
+
+
 
 char getBatteryState()
 {

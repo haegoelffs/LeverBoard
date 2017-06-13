@@ -1,8 +1,3 @@
-/*
-last change: 08.5.2017
-version: 0.1
-*/
-
 #include "System/system.h"
 #include "interface.h"
 #include "drive.h"
@@ -11,11 +6,11 @@ version: 0.1
 #include <util/delay.h>
 
 #define TOLERANCE_HALL_SENS_ZERO_POSITION 25 // 0.5V
-#define MAX_HALL_SENS 30
+#define MAX_HALL_SENS 30     //Max hall sensor voltage as a char
 
-#define MAX_PWR_LEVEL 60
+#define MAX_PWR_LEVEL 60     //Max power level as a char
 
-static char newData;
+//static char newData;
 
 void initINTERFACE()
 {
@@ -80,12 +75,6 @@ void set_new_dutycycle()
 	{
 		tobe_current = (delta_sensors * MAX_PWR_LEVEL)/MAX_HALL_SENS;
 	}
-
-	/*logNamedUnsignedInt("delta_sensor", delta_sensors, 20);
-	writeNewLine();
-
-	logNamedUnsignedInt("tobe current", tobe_current, 20);
-	writeNewLine();*/
 
 	setPowerLevel(tobe_current);
 }

@@ -6,16 +6,28 @@ version: 0.1
 #ifndef INTERFACE_H_INCLUDED
 #define INTERFACE_H_INCLUDED
 
-void initINTERFACE();                   //Initialices the Interface
-uint16_t setNoBreakAlert();					//Turns piezo on
+//Initialices the Interface
+void initINTERFACE();
 
-void quitNoBtreakAlert(uint16_t sys);				//Turns piezo off
+//Turns on piezo
+uint16_t setNoBreakAlert();
 
-uint16_t setBatteryAlert();					//Turns piezo on
-void quitBatteryAlert(uint16_t sys);				//Turns piezo off
+//Turns piezo off if the time since it is turnd on is bigger/equal  2 sec
+void quitNoBtreakAlert(uint16_t sys);
 
-void timeroverflow2();					//Called when timer2 has an overflow. Does nothing
-void flashLEDs();						//Flashes all 4 Energy LEDs
-void set_new_dutycycle();				//Returns the new duty cycle, considering the angle of the board.
-void new_data_available(void);
+//Turns on piezo
+uint16_t setBatteryAlert();
+
+//Turns piezo off if the time since it is turnd on is bigger/equal  1 sec
+void quitBatteryAlert(uint16_t sys);
+
+//Called when timer2 has an overflow. Does nothing
+void timeroverflow2();
+
+//Flashes all 4 Energy LEDs
+void flashLEDs();
+
+//Returns the new duty cycle, considering the angle of the board.
+void set_new_dutycycle();
+
 #endif // INTERFACE_H_INCLUDED
