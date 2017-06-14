@@ -27,7 +27,7 @@ void timeroverflow2();
 //Flashes all 4 Energy LEDs
 void flashLEDs();
 
-//Returns the new duty cycle, considering the angle of the board.
+//Returns the new wished to be Powerlevel, considering the angle of the board.
 void set_new_dutycycle();
 
 #endif // INTERFACE_H_INCLUDED

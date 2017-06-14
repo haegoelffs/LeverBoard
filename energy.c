@@ -5,7 +5,7 @@
 
 void emergencyShutDown(char current)
 {
-	if(current > 47)
+	if(current > 90)
 	{
 		enableBridgeDriver(0);
 		setNoBreakAlert();

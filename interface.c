@@ -8,7 +8,7 @@
 #define TOLERANCE_HALL_SENS_ZERO_POSITION 25 // 0.5V
 #define MAX_HALL_SENS 30     //Max hall sensor voltage as a char
 
-#define MAX_PWR_LEVEL 60     //Max power level as a char
+#define MAX_PWR_LEVEL 85     //Max power level as a char
 
 //static char newData;
 
